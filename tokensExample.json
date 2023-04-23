@@ -1,0 +1,7 @@
+{
+    "base_url": "https://www.strava.com/api/v3",
+    "client_id": 123456,
+    "client_secret": "",
+    "access_token": "",
+    "refresh_token": ""
+}
