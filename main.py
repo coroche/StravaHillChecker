@@ -17,8 +17,7 @@ def isHillBagged(hill, points, n):
     return False
 
 
-def checkActivityForHills(activityID, plot=False, n=1):
-    
+def checkActivityForHills(activityID, plot=False, n=1):    
     stream = StravaAPI.getActivityStreams(activityID, ['latlng'])
 
     distIndex = next((index for (index, d) in enumerate(stream) if d["type"] == "distance"), None)
@@ -66,7 +65,6 @@ def checkActivityForHills(activityID, plot=False, n=1):
 
 
 def populateDescription(activityID, hills, custom_description = ""):
-
         hills = ['✅ ' + hill for hill in hills]
         description = '\n'.join(hills)
         description = custom_description + 'VLs:\n' + description
