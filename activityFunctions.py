@@ -78,17 +78,20 @@ def getCustomDescription(activityID):
         old_description = old_description[0:old_description.find('VLs:')]
     return old_description
 
-def main():
+def updateAllDescriptions():
     activities = StravaAPI.getLoggedInAthleteActivities()
     hikes = [activity for activity in activities if activity['sport_type']  in ['Hike', 'Walk', 'Run', 'Trail Run']]
     activityIDs = [hike['id'] for hike in hikes]
 
     for activityID in activityIDs:
-        hills = checkActivityForHills(activityID, plot=False, n=10)
-        if len(hills) != 0:
-            custom_description = getCustomDescription(activityID)
-            #print(hills, activityID)
-            populateDescription(activityID, hills, custom_description = custom_description)
+        processActivity(activityID)
 
-if __name__ == '__main__':
-    main()
+def processActivity(activityID):
+    hills = checkActivityForHills(activityID, plot=False, n=10)
+    if len(hills) != 0:
+        custom_description = getCustomDescription(activityID)
+        #print(hills, activityID)
+        populateDescription(activityID, hills, custom_description = custom_description)
+        return True
+    else:
+        return False

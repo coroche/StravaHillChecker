@@ -1,2 +1,5 @@
 __pycache__/
 tokens.json
+
+strava-webhooks/*
+!strava-webhooks/index.js
