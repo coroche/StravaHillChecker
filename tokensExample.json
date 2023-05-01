@@ -3,5 +3,7 @@
     "client_id": 123456,
     "client_secret": "",
     "access_token": "",
-    "refresh_token": ""
+    "refresh_token": "",
+    "webhook_callback_url": "",
+    "webhook_verify_token": ""
 }

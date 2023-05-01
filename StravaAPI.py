@@ -27,8 +27,7 @@ def writeTokens(access_token, refresh_token):
         file.truncate()
 
 
-def refreshTokens():
-    
+def refreshTokens():    
     tokens = readTokens()
     url = tokens['base_url'] + "/oauth/token"
 
@@ -45,8 +44,7 @@ def refreshTokens():
     return response['access_token']
 
 
-def getLoggedInAthlete():
-    
+def getLoggedInAthlete():   
     tokens = readTokens()
     url = tokens['base_url'] + "/athlete"
     headers = {'Authorization': 'Bearer ' + tokens['access_token']}
@@ -55,8 +53,7 @@ def getLoggedInAthlete():
     return json.loads(response.text)
 
 
-def getLoggedInAthleteActivities():
-    
+def getLoggedInAthleteActivities():   
     tokens = readTokens()
     url = tokens['base_url'] + "/athlete/activities"
     headers = {'Authorization': 'Bearer ' + tokens['access_token']}
@@ -69,8 +66,7 @@ def getLoggedInAthleteActivities():
     return json.loads(response.text)
 
 
-def getActivityById(activityID):
-    
+def getActivityById(activityID):   
     tokens = readTokens()
     url = tokens['base_url'] + "/activities/" + str(activityID)
     headers = {'Authorization': 'Bearer ' + tokens['access_token']}
@@ -79,8 +75,7 @@ def getActivityById(activityID):
     return json.loads(response.text)
 
 
-def getActivityStreams(activityID, streamTypes):
-    
+def getActivityStreams(activityID, streamTypes):   
     tokens = readTokens()
     url = tokens['base_url'] + "/activities/" + str(activityID) + "/streams"
     streamTypes = str(streamTypes).replace("'","").replace(" ","")[1:-1]
@@ -90,12 +85,45 @@ def getActivityStreams(activityID, streamTypes):
     response = makeRequest("GET", url, headers=headers, params=params)
     return json.loads(response.text)
 
-def updateActivityDescription(activityID, description):
-    
+def updateActivityDescription(activityID, description):   
     tokens = readTokens()
     url = tokens['base_url'] + "/activities/" + str(activityID)
     payload = {'description': description}
     headers = {'Authorization': 'Bearer ' + tokens['access_token']}
     
     response = makeRequest("PUT", url, headers=headers, data=payload)
+    return json.loads(response.text)
+
+
+def getSubscriptions():   
+    tokens = readTokens()
+    url = tokens['base_url'] + "/push_subscriptions?client_id=" + str(tokens['client_id']) + "&client_secret=" + tokens['client_secret']
+
+    response = requests.request("GET", url)
+    return json.loads(response.text)
+data = getSubscriptions()
+print(data)
+
+
+def createSubscription():  
+    tokens = readTokens()
+    url = tokens['base_url'] + "/push_subscriptions"
+
+    payload = {'client_id': tokens['client_id'],
+    'client_secret': tokens['client_secret'],
+    'callback_url': tokens['webhook_callback_url'] + '/webhook',
+    'verify_token': tokens['webhook_verify_token']}
+
+    response = requests.request("POST", url, data=payload)
+    return json.loads(response.text)
+
+
+def deleteSubscription(subscriptionID):
+    tokens = readTokens()
+    url = tokens['base_ulr'] + "/push_subscriptions/" + str(subscriptionID)
+
+    payload = {'client_id': str(tokens['client_id']),
+    'client_secret': tokens['client_secret']}
+
+    response = requests.request("POST", url, data=payload)
     return json.loads(response.text)
