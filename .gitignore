@@ -3,3 +3,4 @@ tokens.json
 
 strava-webhooks/*
 !strava-webhooks/index.js
+logs/
