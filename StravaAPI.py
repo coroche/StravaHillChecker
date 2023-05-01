@@ -101,8 +101,6 @@ def getSubscriptions():
 
     response = requests.request("GET", url)
     return json.loads(response.text)
-data = getSubscriptions()
-print(data)
 
 
 def createSubscription():  
@@ -120,10 +118,13 @@ def createSubscription():
 
 def deleteSubscription(subscriptionID):
     tokens = readTokens()
-    url = tokens['base_ulr'] + "/push_subscriptions/" + str(subscriptionID)
+    url = tokens['base_url'] + "/push_subscriptions/" + str(subscriptionID)
 
     payload = {'client_id': str(tokens['client_id']),
     'client_secret': tokens['client_secret']}
 
-    response = requests.request("POST", url, data=payload)
-    return json.loads(response.text)
+    response = requests.request("DELETE", url, data=payload)
+    if response.text != '':
+        return json.loads(response.text)
+    else:
+        return ''
