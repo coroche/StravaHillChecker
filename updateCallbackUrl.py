@@ -2,7 +2,7 @@ import json
 import requests
 
 def writeCallBackUrl(callback_url):
-    with open('tokens.json', 'r+') as file:
+    with open('config.json', 'r+') as file:
         data = json.load(file)
         data['webhook_callback_url'] = callback_url
         file.seek(0)

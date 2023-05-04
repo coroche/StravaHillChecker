@@ -16,7 +16,7 @@ nohup ngrok http 1000 --log=stdout > logs/ngrok.txt &
 python updateCallbackUrl.py
 
 #Wait until Strava app is updated
-domain=$(jq .webhook_callback_url tokens.json)
+domain=$(jq .webhook_callback_url config.json)
 domain="\"""${domain:9}"
 printf "\nUpdate your Strava app with the new authorization domain\n"
 printf "https://www.strava.com/settings/api\n"

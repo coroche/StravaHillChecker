@@ -12,13 +12,13 @@ def makeRequest(method, url, **kwargs):
 
 
 def readTokens():
-    with open('tokens.json') as file:
+    with open('config.json') as file:
         data = json.load(file)
     return data
 
 
 def writeTokens(access_token, refresh_token):
-    with open('tokens.json', 'r+') as file:
+    with open('config.json', 'r+') as file:
         data = json.load(file)
         data['access_token'] = access_token
         data['refresh_token'] = refresh_token

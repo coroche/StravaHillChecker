@@ -1,6 +1,7 @@
 __pycache__/
-tokens.json
-
+config.json
+token.json
 strava-webhooks/*
 !strava-webhooks/index.js
 logs/
+credentials.json

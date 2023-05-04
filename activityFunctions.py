@@ -1,9 +1,11 @@
 import StravaAPI
+import googleSheetsAPI
 import utm
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import geopy.distance
+from datetime import datetime
 
 def isHillInRange(hill, start, walkLength):
     distance = geopy.distance.geodesic((hill[1], hill[2]), (start[0], start[1])).m
@@ -76,7 +78,8 @@ def getCustomDescription(activityID):
     old_description = activity['description']
     if old_description != "" and 'VLs:' in old_description:
         old_description = old_description[0:old_description.find('VLs:')]
-    return old_description
+    activityDate = datetime.strptime(activity['start_date_local'], '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d')
+    return old_description, activityDate
 
 def updateAllDescriptions():
     activities = StravaAPI.getLoggedInAthleteActivities()
@@ -86,12 +89,19 @@ def updateAllDescriptions():
     for activityID in activityIDs:
         processActivity(activityID)
 
+def updateSpreadsheet(hills, activityDate):
+    SCRIPT_ID = googleSheetsAPI.getScriptID()
+    creds = googleSheetsAPI.login()
+    service = googleSheetsAPI.buildService(creds)
+
+    googleSheetsAPI.markAsDoneByNames(SCRIPT_ID, service, hills, activityDate)
+
 def processActivity(activityID):
     hills = checkActivityForHills(activityID, plot=False, n=10)
     if len(hills) != 0:
-        custom_description = getCustomDescription(activityID)
-        #print(hills, activityID)
+        custom_description, activityDate = getCustomDescription(activityID)
         populateDescription(activityID, hills, custom_description = custom_description)
+        updateSpreadsheet(hills.tolist(), activityDate)
         return True
     else:
         return False
