@@ -40,9 +40,19 @@ def buildService(creds):
         print(error.content)
     return service
  
-def markAsDoneByNames(SCRIPT_ID, service, peakNames, dateClimbed):
-    request = {"function": 'markAsDoneByNames',
-                "parameters": [peakNames, dateClimbed],
+def getPeaks(SCRIPT_ID, service):
+    request = {"function": 'getPeaks',
+                "parameters": "",
+                "devMode": True}
+    try:
+        response = service.scripts().run(body=request, scriptId=SCRIPT_ID).execute()
+        return json.loads(response['response']['result'])
+    except errors.HttpError as error:
+        print(error.content)
+
+def markAsDone(SCRIPT_ID, service, peakIDs, dateClimbed):
+    request = {"function": 'markAsDoneByIDs',
+                "parameters": [peakIDs, dateClimbed],
                 "devMode": True}
     try:
         service.scripts().run(body=request, scriptId=SCRIPT_ID).execute()
