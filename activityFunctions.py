@@ -4,19 +4,15 @@ import utm
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import geopy.distance
 from datetime import datetime
 
-def isHillInRange(hill, start, walkLength):
-    distance = geopy.distance.geodesic((hill[1], hill[2]), (start[0], start[1])).m
-    return distance <= walkLength
 
 def isHillBagged(hill, points, n):
-    for point in points.transpose():
-        d = geopy.distance.geodesic((hill[1], hill[2]), (point[0], point[1])).m
-        if d <= 20 + 3*n:
-            return True
-    return False
+    lat_diffs = np.abs(points[0] - hill[1])
+    lon_diffs = np.abs(points[1] - hill[2])
+
+    matches = np.logical_or(lat_diffs <= 0.0002*n, lon_diffs <= 0.0003*n)
+    return matches.any()
 
 
 def checkActivityForHills(activityID, plot=False, n=1):    
@@ -34,7 +30,6 @@ def checkActivityForHills(activityID, plot=False, n=1):
     data_set = pd.read_csv('hills.csv')
     data_frames = pd.DataFrame(data_set)
     hills_array = np.array(data_frames.values)
-    hills_array = np.array([hill for hill in hills_array if isHillInRange(hill, [lat[0], lng[0]], walkLength)])
     hills_array = np.array([hill for hill in hills_array if isHillBagged(hill, np.array([lat, lng]), n)])
 
     if plot:
