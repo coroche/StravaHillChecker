@@ -18,12 +18,8 @@ def isHillBagged(hill, points, n):
 def checkActivityForHills(activityID, plot=False, n=1):    
     stream = StravaAPI.getActivityStreams(activityID, ['latlng'])
 
-    distIndex = next((index for (index, d) in enumerate(stream) if d["type"] == "distance"), None)
     latLngIndex = next((index for (index, d) in enumerate(stream) if d["type"] == "latlng"), None)
-
     streamLatLng = np.array(stream[latLngIndex]['data'])
-    walkLength = stream[distIndex]['data'][-1]
-
     lat = streamLatLng[:,0][0::n]
     lng = streamLatLng[:,1][0::n]
 
