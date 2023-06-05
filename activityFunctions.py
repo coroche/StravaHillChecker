@@ -11,7 +11,7 @@ def isHillBagged(hill, points, n):
     lat_diffs = np.abs(points[0] - hill['Latitude'])
     lon_diffs = np.abs(points[1] - hill['Longitude'])
 
-    matches = np.logical_or(lat_diffs <= 0.0002*n, lon_diffs <= 0.0003*n)
+    matches = np.logical_and(lat_diffs <= 0.0002*n, lon_diffs <= 0.0003*n)
     return matches.any()
 
 
@@ -63,6 +63,8 @@ def populateDescription(activityID, hills, custom_description = ""):
 def getCustomDescription(activityID):
     activity = StravaAPI.getActivityById(activityID)
     old_description = activity['description']
+    if old_description is None:
+        old_description = ""
     if old_description != "" and 'VLs:' in old_description:
         old_description = old_description[0:old_description.find('VLs:')]
     activityDate = datetime.strptime(activity['start_date_local'], '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d')
