@@ -128,3 +128,11 @@ def deleteSubscription(subscriptionID):
         return json.loads(response.text)
     else:
         return ''
+
+def getActivities(per_page, page):   
+    tokens = readTokens()
+    url = tokens['base_url'] + "/athlete/activities?per_page=" + str(per_page) + "&page=" + str(page)
+    headers = {'Authorization': 'Bearer ' + tokens['access_token']}
+
+    response = makeRequest("GET", url, headers=headers)
+    return json.loads(response.text)
