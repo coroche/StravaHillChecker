@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime
+import config
 
 
 def isHillBagged(hill, points, n):
@@ -80,7 +81,7 @@ def updateAllDescriptions():
 
 
 def processActivity(activityID):
-    SCRIPT_ID = googleSheetsAPI.getScriptID()
+    SCRIPT_ID = config.get('google_script_ID')
     creds = googleSheetsAPI.login()
     service = googleSheetsAPI.buildService(creds)
 
