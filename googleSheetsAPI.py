@@ -7,11 +7,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient import errors
 from googleapiclient.discovery import build
 
-def getScriptID():
-    with open('config.json') as file:
-        data = json.load(file)
-    return data['googleScriptID']
-
 def login():
     creds = None
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -50,9 +45,9 @@ def getPeaks(SCRIPT_ID, service):
     except errors.HttpError as error:
         print(error.content)
 
-def markAsDone(SCRIPT_ID, service, peakIDs, dateClimbed):
+def markAsDone(SCRIPT_ID, service, peakIDs, dateClimbed, activityID):
     request = {"function": 'markAsDoneByIDs',
-                "parameters": [peakIDs, dateClimbed],
+                "parameters": [peakIDs, dateClimbed, activityID],
                 "devMode": True}
     try:
         service.scripts().run(body=request, scriptId=SCRIPT_ID).execute()

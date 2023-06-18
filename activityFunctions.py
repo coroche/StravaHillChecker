@@ -91,7 +91,7 @@ def processActivity(activityID):
         populateDescription(activityID, hills, custom_description = custom_description)
 
         hillIDs = [hill['#'] for hill in hills]
-        googleSheetsAPI.markAsDone(SCRIPT_ID, service, hillIDs, activityDate)
+        googleSheetsAPI.markAsDone(SCRIPT_ID, service, hillIDs, activityDate, activityID)
         return True
     else:
         return False
