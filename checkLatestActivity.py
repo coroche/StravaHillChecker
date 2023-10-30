@@ -3,7 +3,7 @@ from activityFunctions import processActivity
 import config
 
 def main():
-    latestActivityID = getActivities(1,1)[0]['id']
+    latestActivityID = getActivities(1,1)[0].id
     lastParsedActivity = config.get('last_parsed_activity')
 
     if latestActivityID != lastParsedActivity:
