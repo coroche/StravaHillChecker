@@ -5,3 +5,4 @@ strava-webhooks/*
 !strava-webhooks/index.js
 logs/
 credentials.json
+Tests/testData.json

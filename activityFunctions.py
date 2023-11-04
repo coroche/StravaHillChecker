@@ -79,7 +79,7 @@ def updateAllDescriptions():
         processActivity(activityID)
 
 
-def processActivity(activityID: int) -> bool:
+def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
     creds = googleSheetsAPI.login()
     service = googleSheetsAPI.buildService(creds)
 
@@ -90,7 +90,7 @@ def processActivity(activityID: int) -> bool:
 
         hillIDs = [hill.id for hill in hills]
         googleSheetsAPI.markAsDone(settings.google_script_ID, service, hillIDs, activityDate, activityID)
-        return True
+        return True, hills
     else:
-        return False
+        return False, hills
 

@@ -1,0 +1,9 @@
+{
+    "ActivityWithHills": 12345,
+    "ActivityWithoutHills": 54321,
+    "Hills": [
+        "Hill 1", 
+        "Hill 2", 
+        "Hill 3"
+    ]
+}
