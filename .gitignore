@@ -6,3 +6,4 @@ strava-webhooks/*
 logs/
 credentials.json
 Tests/testData.json
+*.zip

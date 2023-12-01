@@ -2,17 +2,19 @@ import StravaAPI
 import activityFunctions
 import webhookReceiver
 import json
+from dataclasses import dataclass
+from typing import List
 
+@dataclass
 class TestData:
-    def __init__(self, data: dict):
-        self.ActivityWithHills = data.get("ActivityWithHills")
-        self.ActivityWithoutHills = data.get("ActivityWithoutHills")
-        self.Hills = data.get("Hills")
+    ActivityWithHills: int
+    ActivityWithoutHills: int
+    Hills: List[str]
 
 def getTestData() -> TestData:
     with open('Tests/testData.json') as file:
         test_data_json = json.load(file)
-        settings = TestData(test_data_json)
+        settings = TestData(**test_data_json)
     return settings
 
 def test_processActivityWithHills():

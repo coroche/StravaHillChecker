@@ -2,43 +2,45 @@ import requests
 import json
 import config
 from typing import List
+from dataclasses import dataclass
 
-
+@dataclass
 class Activity:
-    def __init__(self, data: dict):
-        self.id: int = data.get("id")
-        self.name: str = data.get("name")
-        self.description: str = data.get("description")
-        self.start_date_local: str = data.get("start_date_local")
-        self.sport_type: str = data.get("sport_type")
+    id: int
+    name: str
+    description: str
+    start_date_local: str
+    sport_type: str
 
 
-class Athlete:
-    def __init__(self, data: dict):
-        self.id = data.get("id")
-        self.firstname = data.get("firstname")
-        self.lastname = data.get("lastname")
+@dataclass
+class Athlete:  
+    id: int
+    firstname: str
+    lastname: str
 
 
+@dataclass
 class Stream:
-    def __init__(self, data: dict):
-        self.type: str = data.get("type")
-        self.data: List[List[float]] = data.get("data")
+    type: str
+    data: List[List[float]]
 
 
+@dataclass
 class Subscription:
-    def __init__(self, data: dict):
-        self.id: int = data.get("id")
+    id: int
 
 
+@dataclass
 class TokenResponse:
-    def __init__(self, data: dict):
-        self.access_token: str = data.get("access_token")
-        self.refresh_token: str = data.get("refresh_token")
+    access_token: str
+    refresh_token: str
 
 
 settings = config.getConfig()
 
+def trimData(json_data: dict, dClass: type) -> dict:
+    return {key: value for key, value in json_data.items() if key in dClass.__annotations__}
 
 def makeRequest(method: str, url: str, **kwargs) -> requests.Response:
     response = requests.request(method, url, **kwargs)
@@ -70,7 +72,8 @@ def refreshTokens():
     }
 
     response = requests.request("POST", url, data=payload)
-    tokens = TokenResponse(json.loads(response.text))    
+    token_data = trimData(json.loads(response.text), TokenResponse)
+    tokens = TokenResponse(**token_data)
     
     settings.access_token = tokens.access_token
     settings.refresh_token = tokens.refresh_token
@@ -83,8 +86,9 @@ def getLoggedInAthlete() -> Athlete:
     headers = {'Authorization': 'Bearer ' + settings.access_token}
 
     response = makeRequest("GET", url, headers=headers)
-    athlete_data = json.loads(response.text)
-    return Athlete(athlete_data)
+    athlete_data: dict = json.loads(response.text)
+    athlete_data = trimData(athlete_data, Athlete)
+    return Athlete(**athlete_data)
 
 
 def getLoggedInAthleteActivities() -> List[Activity]:
@@ -107,7 +111,9 @@ def getActivityById(activityID: int) -> Activity:
     headers = {'Authorization': 'Bearer ' + settings.access_token}
 
     response = makeRequest("GET", url, headers=headers)
-    activity = Activity(json.loads(response.text))
+    activity_json: dict = json.loads(response.text)
+    activity_json = trimData(activity_json, Activity)
+    activity = Activity(**activity_json)
     return activity
 
 
@@ -121,7 +127,8 @@ def getActivityStreams(activityID: int, streamTypes: List[str]) -> List[Stream]:
     response = makeRequest("GET", url, headers=headers, params=params)  
     streams_list: List[Stream] = []
     for stream_data in json.loads(response.text):
-        streams_list.append(Stream(stream_data))
+        stream_data = trimData(stream_data, Stream)
+        streams_list.append(Stream(**stream_data))
     
     streams_list = [x for x in streams_list if x.type in streamTypes]
     return streams_list
@@ -141,7 +148,8 @@ def getSubscriptions() -> List[Subscription]:
     response = requests.request("GET", url)
     subscription_list = []
     for subscription_data in json.loads(response):
-        subscription_list.append(Subscription(subscription_data))
+        subscription_data = trimData(subscription_data, Subscription)
+        subscription_list.append(Subscription(**subscription_data))
     return subscription_list
 
 
@@ -185,5 +193,6 @@ def getActivities(per_page: int, page: int) -> List[Activity]:
     response = json.loads(response.text)
     activity_list: List[Activity] = []
     for activity_data in response:
-        activity_list.append(Activity(activity_data))
+        activity_data = trimData(activity_data, Activity)
+        activity_list.append(Activity(**activity_data))
     return activity_list
