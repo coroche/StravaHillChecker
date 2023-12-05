@@ -10,6 +10,7 @@ class TestData:
     ActivityWithHills: int
     ActivityWithoutHills: int
     Hills: List[str]
+    ActivityID: int
 
 def getTestData() -> TestData:
     with open('Tests/testData.json') as file:
@@ -44,3 +45,7 @@ def test_processWebhook_WithoutHills(capfd):
     webhookReceiver.handleWebhook(testData.ActivityWithoutHills)
     out, _ = capfd.readouterr()
     assert out == 'Activity:' + str(testData.ActivityWithoutHills) + ' processed\n'
+
+def test_processActivity():
+    testData = getTestData()
+    activityFunctions.processActivity(testData.ActivityID)

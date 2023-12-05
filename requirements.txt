@@ -1,0 +1,11 @@
+functions-framework
+requests
+google-auth
+google-auth-httplib2
+google-api-python-client
+google-auth-oauthlib
+utm
+numpy
+matplotlib
+datetime
+typing
