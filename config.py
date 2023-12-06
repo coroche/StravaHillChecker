@@ -11,6 +11,7 @@ class Config:
         self.webhook_verify_token = data.get("webhook_verify_token")
         self.google_script_ID = data.get("google_script_ID")
         self.last_parsed_activity = data.get("last_parsed_activity")
+        self.google_functions_url = data.get("google_functions_url")
 
 def getConfig() -> Config:
     with open('config.json') as file:

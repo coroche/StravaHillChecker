@@ -7,5 +7,6 @@
     "webhook_callback_url": "",
     "webhook_verify_token": "",
     "googleScriptID": "",
-    "last_parsed_activity": 123456
+    "last_parsed_activity": 123456,
+    "google_functions_url": ""
 }
