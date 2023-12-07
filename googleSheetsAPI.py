@@ -16,6 +16,15 @@ class Hill:
         self.longitude: float = data.get("Longitude")
         self.done: bool = data.get("DoneBool")
 
+    def asDict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'done': self.done,
+            }
+
 
 def login() -> Credentials:
     creds = None

@@ -111,6 +111,8 @@ def getActivityById(activityID: int) -> Activity:
     headers = {'Authorization': 'Bearer ' + settings.access_token}
 
     response = makeRequest("GET", url, headers=headers)
+    if response.status_code == 404:
+        return Activity(0, '','','','')
     activity_json: dict = json.loads(response.text)
     activity_json = trimData(activity_json, Activity)
     activity = Activity(**activity_json)
@@ -194,5 +196,6 @@ def getActivities(per_page: int, page: int) -> List[Activity]:
     activity_list: List[Activity] = []
     for activity_data in response:
         activity_data = trimData(activity_data, Activity)
+        activity_data.setdefault("description", "")
         activity_list.append(Activity(**activity_data))
     return activity_list

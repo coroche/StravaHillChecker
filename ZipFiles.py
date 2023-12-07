@@ -16,3 +16,9 @@ files_to_zip = ['activityFunctions.py', 'config.json', 'config.py', 'credentials
 archive_file_names = ['activityFunctions.py', 'config.json', 'config.py', 'credentials.json', 'googleSheetsAPI.py', 'main.py', 'requirements.txt', 'StravaAPI.py', 'token.json']
 zip_file_name = 'processActivity.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
+
+#Zip files for the processLatestActivity cloud function
+files_to_zip = ['activityFunctions.py', 'config.json', 'config.py', 'credentials.json', 'googleSheetsAPI.py', 'main_processLatestActivity.py', 'requirements.txt', 'StravaAPI.py', 'token.json']
+archive_file_names = ['activityFunctions.py', 'config.json', 'config.py', 'credentials.json', 'googleSheetsAPI.py', 'main.py', 'requirements.txt', 'StravaAPI.py', 'token.json']
+zip_file_name = 'processLatestActivity.zip'
+zip_files(files_to_zip, zip_file_name, archive_file_names)

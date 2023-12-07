@@ -2,19 +2,28 @@
 from flask import jsonify, Request, Response
 import functions_framework
 import activityFunctions
+from StravaAPI import getActivityById
 
 
 @functions_framework.http
 def hello_http(request: Request) -> Response:
 
-
-    #Event notification
     if request.method == 'POST':
     
         activityID = request.args.get('activityID')
-        _,_ = activityFunctions.processActivity(activityID)
+
+        activity = getActivityById(activityID)
+        if activity.id == 0:
+            return f"Activity {activityID} not found", 404
+
+        _, hills = activityFunctions.processActivity(activityID)
+        response = {
+            "ActivityID": activityID,
+            "HillsClimbed": len(hills),
+            "Hills": [hill.asDict() for hill in hills]
+        }
     
-        return f"Activity {activityID} processed", 200
+        return jsonify(response), 200
     
     else:
         return f"{request.method} method not supported", 500
