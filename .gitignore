@@ -7,3 +7,4 @@ logs/
 credentials.json
 Tests/testData.json
 *.zip
+firebaseServiceAccountKey.json

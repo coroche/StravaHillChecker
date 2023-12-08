@@ -52,13 +52,8 @@ def makeRequest(method: str, url: str, **kwargs) -> requests.Response:
 
 
 def writeTokens():
-    with open('config.json', 'r+') as file:
-        data = json.load(file)
-        data['access_token'] = settings.access_token
-        data['refresh_token'] = settings.refresh_token
-        file.seek(0)
-        json.dump(data, file, indent=4)
-        file.truncate()
+    config.write('access_token', settings.access_token)
+    config.write('refresh_token', settings.refresh_token)
 
 
 def refreshTokens():
