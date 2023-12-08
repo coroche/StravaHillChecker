@@ -10,3 +10,4 @@ matplotlib
 datetime
 typing
 requests
+firebase_admin
