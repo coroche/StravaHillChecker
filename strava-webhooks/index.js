@@ -6,8 +6,17 @@
 const
   express = require('express'),
   bodyParser = require('body-parser'),
+  fs = require('fs'),
+  path = require('path'),
 // creates express http server
   app = express().use(bodyParser.json());
+
+
+// Get the current directory of the JavaScript file
+const currentDir = __dirname;
+
+// Path to your JSON file (one folder level higher)
+const filePath = path.join(currentDir, '../config.json');
 
 // Sets server port and logs message on success
 app.listen(process.env.PORT || 1000, () => console.log('webhook is listening'));
@@ -29,22 +38,46 @@ app.post('/webhook', (req, res) => {
 
 // Adds support for GET requests to our webhook
 app.get('/webhook', (req, res) => {
-  // Your verify token. Should be a random string.
-  const VERIFY_TOKEN = "STRAVA";
   // Parses the query params
   let mode = req.query['hub.mode'];
   let token = req.query['hub.verify_token'];
   let challenge = req.query['hub.challenge'];
+  
   // Checks if a token and mode is in the query string of the request
   if (mode && token) {
-    // Verifies that the mode and token sent are valid
-    if (mode === 'subscribe' && token === VERIFY_TOKEN) {     
-      // Responds with the challenge token from the request
-      console.log('WEBHOOK_VERIFIED');
-      res.json({"hub.challenge":challenge});  
-    } else {
-      // Responds with '403 Forbidden' if verify tokens do not match
-      res.sendStatus(403);      
+    readTokenFromFile((err, storedToken) => {
+      if (err) {
+        res.status(500).send('Error reading token from file');
+        return;
+      }
+      
+      // Verifies that the mode and token sent are valid
+      if (mode === 'subscribe' && token === storedToken) {     
+        // Responds with the challenge token from the request
+        console.log('WEBHOOK_VERIFIED');
+        res.json({"hub.challenge":challenge});  
+      } else {
+        // Responds with '403 Forbidden' if verify tokens do not match
+        res.sendStatus(403);      
+      }
     }
-  }
+  )}
 });
+
+function readTokenFromFile(callback) {
+  
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      callback(err, null);
+      return;
+    }
+
+    try {
+      const tokens = JSON.parse(data);
+      const storedToken = tokens.webhook_verify_token;
+      callback(null, storedToken);
+    } catch (error) {
+      callback(error, null);
+    }
+  });
+}
