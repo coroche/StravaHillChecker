@@ -3,6 +3,7 @@ config.json
 token.json
 strava-webhooks/*
 !strava-webhooks/index.js
+!strava-webhooks/startWebhookListener.sh
 logs/
 credentials.json
 Tests/testData.json

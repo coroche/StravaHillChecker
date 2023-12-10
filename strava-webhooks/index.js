@@ -16,7 +16,7 @@ const
 const currentDir = __dirname;
 
 // Path to your JSON file (one folder level higher)
-const filePath = path.join(currentDir, '../config.json');
+const filePath = path.join(currentDir, '../data/config.json');
 
 // Sets server port and logs message on success
 app.listen(process.env.PORT || 1000, () => console.log('webhook is listening'));
