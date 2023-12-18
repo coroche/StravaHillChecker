@@ -11,6 +11,11 @@ class Activity:
     description: str
     start_date_local: str
     sport_type: str
+    distance: float
+    moving_time: float
+    total_elevation_gain: float
+    visibility: str
+    private: bool
 
 
 @dataclass

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>New Strava Activity Alert</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <tr>
+            <td style="padding: 20px; text-align: center; background-color: #097138; color: #ffffff;">
+                <h1 style="margin: 0; font-weight: bold;">New Hills Climbed</h1>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px;">
+                <p>Hi</p>
+                <p>I've just climbed some hills and it's time for some recognition! Your kudos are non-negotiable. Join me in celebrating my great achievement.</p>
+                <h3>Activity Details</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li><strong>Distance:</strong> {ActivityDistance}</li>
+                    <li><strong>Duration:</strong> {ActivityDuration}</li>
+                    <li><strong>Hills:</strong><ul>{Hills}</ul></li>
+                </ul>
+                <h3>Progress</h3>
+                <iframe width="371" height="230" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHX4KUY-kYTP0HT7tWDjYz_FOL23Do-KY1xMhyO7y1qykUX36IN_I4glXXzdMjmJnLrpXKaP9IxHks/pubchart?oid=252716384&amp;format=interactive"></iframe>
+                <p>Best regards,<br>Cormac</p>
+                <!-- Button linking to your Strava activity -->
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td align="center" style="padding: 20px;">
+                            <a href="{StravaLink}" target="_blank" style="display: inline-block; padding: 12px 24px; background-color: #097138; color: #ffffff; text-decoration: none; border-radius: 5px;">View Activity on Strava</a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px; text-align: center; background-color: #097138; color: #ffffff;">
+                <p>To unsibscribe, <a href="{StravaLink}" style="color: #ffffff;">give me kudos</aa>.</p>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

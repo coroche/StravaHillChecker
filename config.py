@@ -2,22 +2,17 @@ import json
 import firebase_admin
 from firebase_admin import credentials, firestore
 import os
+from dataclasses import dataclass, asdict
+from typing import List
 
-is_running_on_gcp = os.getenv('FUNCTION_TARGET') is not None
 
-#Manage settings with Firestore only if running on GCP
-if is_running_on_gcp:
-    cred = credentials.Certificate('data/firebaseServiceAccountKey.json')
-    firebase_admin.initialize_app(cred)
-    db = firestore.client()
-    config_doc_ref = db.collection('config').document('settings')
-    credentials_doc_ref = db.collection('config').document('credentials')
-    token_doc_ref = db.collection('config').document('token')
-else:
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    config_file_path = os.path.join(current_dir, '..', 'data', 'config.json')
-    credentials_file_path = os.path.join(current_dir, '..', 'data', 'credentials.json')
-    token_file_path = os.path.join(current_dir, '..', 'data', 'token.json')
+cred = credentials.Certificate('data/firebaseServiceAccountKey.json')
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+config_doc_ref = db.collection('config').document('settings')
+credentials_doc_ref = db.collection('config').document('credentials')
+token_doc_ref = db.collection('config').document('token')
+
 
 class Config:
     def __init__(self, data: dict):
@@ -31,72 +26,74 @@ class Config:
         self.google_script_ID = data.get("google_script_ID")
         self.last_parsed_activity = data.get("last_parsed_activity")
         self.google_functions_url = data.get("google_functions_url")
+        self.smtp_port = data.get('smtp_port')
+        self.smtp_server = data.get('smtp_server')
+        self.sender_email = data.get('sender_email') 
+        self.smtp_password = data.get('smtp_password')
+        self.errorEmail = data.get('error_email')
+
+@dataclass
+class Receipient:
+    email: str
+    on_strava: bool
+    strava_firstname: str
+    strava_lastname: str
+    
+    @property
+    def strava_fullname(self) -> str:
+        return self.strava_firstname + self.strava_lastname
+    
+@dataclass
+class Notification:
+    activity_id: int
+    strava_fullname: str
+    kudos: bool = False
 
 def getConfig() -> Config:   
-    if is_running_on_gcp:
-        config_data = config_doc_ref.get().to_dict()
-
-    else:
-        with open(config_file_path) as file:
-            config_data = json.load(file)
-    
+    config_data = config_doc_ref.get().to_dict()  
     config = Config(config_data)
     return config
 
 
-def get(parameter: str):    
-    if is_running_on_gcp:
-        data = config_doc_ref.get().to_dict()
-    
-    else:
-        with open(config_file_path) as file:
-            data = json.load(file)
-    
+def get(parameter: str):       
+    data = config_doc_ref.get().to_dict()
     return data[parameter]
 
 
 def write(parameter: str, value):   
-    if is_running_on_gcp:
-        config_doc_ref.update({parameter: value})
-
-    else:
-        with open(config_file_path, 'r+') as file:
-            data = json.load(file)
-            data[parameter] = value
-            file.seek(0)
-            json.dump(data, file, indent=4)
-            file.truncate()
+    config_doc_ref.update({parameter: value})
 
 
 def getCredentials() -> dict:
-    if is_running_on_gcp:
-        data = credentials_doc_ref.get().to_dict()
-    
-    elif os.path.exists(credentials_file_path):
-        with open(credentials_file_path) as file:
-            data = json.load(file)
-
+    data = credentials_doc_ref.get().to_dict()
     return data
+
 
 def getToken() -> dict:
     data = None
-
-    if is_running_on_gcp:
-        data = token_doc_ref.get().to_dict()
-    
-    elif os.path.exists(token_file_path):
-        with open(token_file_path) as file:
-            data = json.load(file)
-
+    data = token_doc_ref.get().to_dict()
     return data
 
 
-def writeToken(token_data: str):
-    if is_running_on_gcp:
-        token_data = json.loads(token_data)
-        token_doc_ref.update(token_data)
+def writeToken(token_data: str):   
+    token_data = json.loads(token_data)
+    token_doc_ref.update(token_data)
     
-    elif os.path.exists(token_file_path):
-        with open(token_file_path, 'w') as token:
-            token.write(token_data)
+
+def getMailingList() -> List[Receipient]:   
+    mailingList = db.collection('mailing_list').get()
+    return [Receipient(**doc.to_dict()) for doc in mailingList]
+
+
+def getActivityNotifications(activityID: int) -> List[Notification]:   
+    activityNotifications = db.collection('notifications').where('activity_id', '==', activityID).get()
+    return [Notification(**doc.to_dict()) for doc in activityNotifications]
+
+
+def writeNotification(activityID, strava_fullname):   
+    notification = Notification(activityID, strava_fullname)
+    collection_ref = db.collection('notifications')
+    collection_ref.document(f"{activityID}_{strava_fullname}").set(asdict(notification))
+
+    
 
