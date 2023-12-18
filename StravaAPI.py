@@ -41,6 +41,12 @@ class TokenResponse:
     access_token: str
     refresh_token: str
 
+@dataclass
+class ActivityPhoto:
+    activity_id: str
+    urls: dict
+    default_photo: bool
+
 
 settings = config.getConfig()
 
@@ -107,7 +113,7 @@ def getLoggedInAthleteActivities() -> List[Activity]:
 
 
 def getActivityById(activityID: int) -> Activity:
-    url = settings.base_url + "/activities/" + str(activityID)
+    url = f"{settings.base_url}/activities/{activityID}"
     headers = {'Authorization': 'Bearer ' + settings.access_token}
 
     response = makeRequest("GET", url, headers=headers)
@@ -120,20 +126,38 @@ def getActivityById(activityID: int) -> Activity:
 
 
 def getActivityStreams(activityID: int, streamTypes: List[str]) -> List[Stream]:
-    url = settings.base_url + "/activities/" + str(activityID) + "/streams"
+    url = f"{settings.base_url}/activities/{activityID}/streams"
     streamTypes_str = str(streamTypes).replace("'","").replace(" ","")[1:-1]
     
     headers = {'Authorization': 'Bearer ' + settings.access_token}
     params = {'keys': streamTypes_str}
 
     response = makeRequest("GET", url, headers=headers, params=params)  
-    streams_list: List[Stream] = []
-    for stream_data in json.loads(response.text):
-        stream_data = trimData(stream_data, Stream)
-        streams_list.append(Stream(**stream_data))
     
-    streams_list = [x for x in streams_list if x.type in streamTypes]
+    streams_list = [Stream(**trimData(stream_data, Stream)) for stream_data in json.loads(response.text)]
+    streams_list = [stream for stream in streams_list if stream.type in streamTypes]
     return streams_list
+
+
+def getPrimaryActivityPhoto(activityID: int) -> str:
+    url = f"{settings.base_url}/activities/{activityID}/photos?size=5000"
+    headers = {'Authorization': 'Bearer ' + settings.access_token}
+
+    response = makeRequest("GET", url, headers=headers)
+    if response.status_code == 404:
+        return settings.default_email_image
+    
+    photo_list = [ActivityPhoto(**trimData(photo_data, ActivityPhoto)) for photo_data in json.loads(response.text)]
+    primary_photo = [photo for photo in photo_list if photo.default_photo]
+    if len(primary_photo) == 0:
+        return settings.default_email_image
+    else:
+        url = primary_photo[0].urls['5000']
+        if url:
+            return url
+        else:
+            return settings.default_email_image
+
 
 def updateActivityDescription(activityID: int, description: str) -> dict:
     url = settings.base_url + "/activities/" + str(activityID)

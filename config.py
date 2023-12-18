@@ -31,6 +31,7 @@ class Config:
         self.sender_email = data.get('sender_email') 
         self.smtp_password = data.get('smtp_password')
         self.errorEmail = data.get('error_email')
+        self.default_email_image = data.get('default_email_image')
 
 @dataclass
 class Receipient:

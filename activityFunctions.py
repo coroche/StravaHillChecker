@@ -116,6 +116,8 @@ def composeMail(htmlFile: str, activity: StravaAPI.Activity, activityHills: List
     with open(htmlFile, 'r') as file:
         html_content = file.read()
     
+    backgroundImg = StravaAPI.getPrimaryActivityPhoto(activity.id)
+
     done = len([hill for hill in allHills if hill.done])
     togo = len([hill for hill in allHills if not hill.done])
     m, _ = divmod(activity.moving_time, 60)
@@ -128,6 +130,7 @@ def composeMail(htmlFile: str, activity: StravaAPI.Activity, activityHills: List
         .replace("{ActivityDistance}", f"{activity.distance/1000:.1f}km")\
         .replace("{ActivityDuration}", f'{h:d}h {m:02d}m')\
         .replace("{Hills}", html_hillNames)\
-        .replace("{StravaLink}", f"https://www.strava.com/activities/{activity.id}")
+        .replace("{StravaLink}", f"https://www.strava.com/activities/{activity.id}")\
+        .replace("{BackgroundImage}", backgroundImg)
     
     return html_content
