@@ -30,10 +30,9 @@ def sendErrorEmail(e):
     message = MIMEMultipart()
     message["Subject"] = 'Strava hill checker Error'
     message["From"] = settings.sender_email
-    message["To"] = settings.errorEmail
+    message["To"] = settings.error_email
     message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL(settings.smtp_server, settings.smtp_port, context=context) as server:
         server.login(settings.sender_email, settings.smtp_password)
         server.sendmail(settings.sender_email, settings.errorEmail, message.as_string())
-        

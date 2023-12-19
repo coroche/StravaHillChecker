@@ -35,7 +35,7 @@ def checkActivityForHills(activityID: int, SCRIPT_ID: str, service: googleSheets
         y = [i - minY for i in route_cartesian[1]]
         plt.plot(x, y, 'r-')
 
-        if len(hills) != 0:
+        if hills:
 
             hills_lat = np.array([hill.latitude for hill in hills]).astype(float)
             hills_lng = np.array([hill.longitude for hill in hills]).astype(float)
@@ -87,7 +87,7 @@ def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
     activityHills, allHills = checkActivityForHills(activityID, settings.google_script_ID, service, plot=False, n=1)
     
 
-    if len(activityHills) != 0:
+    if activityHills:
         custom_description, activityDate, activity = getActivityDetails(activityID)
         populateDescription(activityID, activityHills, custom_description = custom_description)
 
@@ -100,12 +100,12 @@ def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
             html_content = composeMail('Email2.html', activity, activityHills, allHills)
             
             for receipient in mailingList:
-                receipientNotifications = [notification for notification in notifications if notification.strava_fullname == receipient.strava_fullname]
+                receipientNotifications = [notification for notification in notifications if notification.receipient_id == receipient.id]
                 
                 #If the receipient has not already been notified
-                if len(receipientNotifications) == 0:
+                if not receipientNotifications:
                     sendEmail(html_content, receipient.email, "Your kudos are required")
-                    config.writeNotification(activity.id, receipient.strava_fullname)
+                    config.writeNotification(activity.id, receipient.id)
 
         return True, activityHills
     else:
@@ -134,3 +134,36 @@ def composeMail(htmlFile: str, activity: StravaAPI.Activity, activityHills: List
         .replace("{BackgroundImage}", backgroundImg)
     
     return html_content
+
+
+def composeFollowupEmail(htmlFile: str, activity: StravaAPI.Activity) -> str:
+    with open(htmlFile, 'r') as file:
+        html_content = file.read()
+    
+    html_content = html_content\
+        .replace("{StravaLink}", f"https://www.strava.com/activities/{activity.id}")
+    
+    return html_content
+
+
+def bullyReceipients():
+    notifications = config.getUnkudosedNotifications()
+    grouped_by_activity = {}
+    for notification in notifications:
+        if notification.activity_id not in grouped_by_activity:
+            grouped_by_activity[notification.activity_id] = []
+        grouped_by_activity[notification.activity_id].append(notification)
+    
+    for activityID, notifications in grouped_by_activity.items():
+        activity = StravaAPI.getActivityById(activityID)
+        if not activity.private:
+            kudoers = StravaAPI.getActivityKudoers(activityID, activity.kudos_count)
+            html_content = composeFollowupEmail('FollowUpEmail.html', activity)
+            for notification in notifications:
+                receipient = config.getReceipient(notification.receipient_id)
+                if receipient.on_strava:
+                    if receipient.strava_fullname in [kudoer.fullname for kudoer in kudoers]:
+                        config.updateNotification(activity.id, receipient.id)
+                    else:
+                        sendEmail(html_content, receipient.email, 'I am once again asking for you to...')
+        

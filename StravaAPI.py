@@ -16,13 +16,18 @@ class Activity:
     total_elevation_gain: float
     visibility: str
     private: bool
+    kudos_count: int
 
 
 @dataclass
 class Athlete:  
-    id: int
     firstname: str
     lastname: str
+    id: int = 0
+
+    @property
+    def fullname(self) -> str:
+        return self.firstname + self.lastname
 
 
 @dataclass
@@ -157,6 +162,17 @@ def getPrimaryActivityPhoto(activityID: int) -> str:
             return url
         else:
             return settings.default_email_image
+
+
+def getActivityKudoers(activityID: int, kudos_count: int) -> List[Athlete]:
+    url = f"{settings.base_url}/activities/{activityID}/kudos"
+    
+    headers = {'Authorization': 'Bearer ' + settings.access_token}
+    params = {'per_page': kudos_count}
+
+    response = makeRequest("GET", url, headers=headers, params=params)    
+    kudos_list = [Athlete(**trimData(kudos_data, Athlete)) for kudos_data in json.loads(response.text)]  
+    return kudos_list
 
 
 def updateActivityDescription(activityID: int, description: str) -> dict:
