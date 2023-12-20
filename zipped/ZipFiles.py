@@ -22,3 +22,9 @@ files_to_zip = ['activityFunctions.py', 'config.py', 'googleSheetsAPI.py', 'main
 archive_file_names = ['activityFunctions.py', 'config.py', 'googleSheetsAPI.py', 'main.py', 'requirements.txt', 'StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'Email2.html', 'smtp.py']
 zip_file_name = 'zipped/processLatestActivity.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
+
+#Zip files for the sendReminders cloud function
+files_to_zip = ['activityFunctions.py', 'config.py', 'googleSheetsAPI.py', 'main_sendReminders.py', 'requirements.txt', 'StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'FollowUpEmail.html', 'smtp.py']
+archive_file_names = ['activityFunctions.py', 'config.py', 'googleSheetsAPI.py', 'main.py', 'requirements.txt', 'StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'FollowUpEmail.html', 'smtp.py']
+zip_file_name = 'zipped/sendReminders.zip'
+zip_files(files_to_zip, zip_file_name, archive_file_names)

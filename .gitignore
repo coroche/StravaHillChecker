@@ -9,4 +9,4 @@ credentials.json
 Tests/testData.json
 *.zip
 firebaseServiceAccountKey.json
-*.bat
+*.ini
