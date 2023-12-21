@@ -1,8 +1,8 @@
 #for use with google cloud functions
 from flask import jsonify, Request, Response
 import functions_framework
-import activityFunctions
-from StravaAPI import getActivityById
+import library.activityFunctions as activityFunctions
+from library.StravaAPI import getActivityById
 
 
 @functions_framework.http

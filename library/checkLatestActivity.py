@@ -1,6 +1,6 @@
-from StravaAPI import getActivities
-from activityFunctions import processActivity
-import config
+from library.StravaAPI import getActivities
+from library.activityFunctions import processActivity
+import data.config as config
 
 def main():
     latestActivityID = getActivities(1,1)[0].id

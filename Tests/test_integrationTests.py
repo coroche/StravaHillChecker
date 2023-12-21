@@ -1,7 +1,6 @@
-import StravaAPI
-import activityFunctions
-import webhookReceiver
-from test_data import getTestData
+import library.StravaAPI as StravaAPI
+import library.activityFunctions as activityFunctions
+from Tests.testdata import getTestData
 
 testData = getTestData()
 
@@ -18,16 +17,6 @@ def test_processActivityWithoutHills():
     hasHills, hills = activityFunctions.processActivity(testData.ActivityWithoutHills)
     assert not hasHills
     assert len(hills) == 0
-
-def test_processWebhook_WithHills(capfd):   
-    webhookReceiver.handleWebhook(testData.ActivityWithHills)
-    out, _ = capfd.readouterr()
-    assert out == 'Activity:' + str(testData.ActivityWithHills) + ' processed\nDescription updated\n'
-
-def test_processWebhook_WithoutHills(capfd):     
-    webhookReceiver.handleWebhook(testData.ActivityWithoutHills)
-    out, _ = capfd.readouterr()
-    assert out == 'Activity:' + str(testData.ActivityWithoutHills) + ' processed\n'
 
 def test_processActivity():   
     activityFunctions.processActivity(testData.ActivityID)

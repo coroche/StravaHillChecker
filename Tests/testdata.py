@@ -11,6 +11,7 @@ class TestData:
     GCPProject: str
     ReceipientID: str
     ReceipientEmail: str
+    TestEmail: str
 
 def getTestData() -> TestData:
     with open('Tests/testData.json') as file:

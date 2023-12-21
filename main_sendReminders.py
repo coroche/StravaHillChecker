@@ -1,7 +1,7 @@
 import datetime
 import logging
 from string import Template
-from activityFunctions import bullyReceipients
+from library.activityFunctions import bullyReceipients
 
 def main(data, context):
 

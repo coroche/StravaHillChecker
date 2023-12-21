@@ -7,7 +7,7 @@ from googleapiclient import errors
 from googleapiclient.discovery import build, Resource
 from typing import List
 from datetime import datetime
-import config
+import data.config as config
 
 class Hill:
     def __init__(self, data: dict):

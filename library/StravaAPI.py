@@ -1,6 +1,6 @@
 import requests
 import json
-import config
+import data.config as config
 from typing import List
 from dataclasses import dataclass
 

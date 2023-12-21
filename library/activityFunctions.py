@@ -1,12 +1,12 @@
-import StravaAPI
-import googleSheetsAPI
+import library.StravaAPI as StravaAPI
+import library.googleSheetsAPI as googleSheetsAPI
 import utm
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
-import config
+import data.config as config
 from typing import List
-from smtp import sendEmail
+from library.smtp import sendEmail
 
 settings = config.getConfig()
 
@@ -97,7 +97,8 @@ def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
         if not activity.private:
             notifications = config.getActivityNotifications(activity.id)
             mailingList = config.getMailingList()
-            html_content = composeMail('Email2.html', activity, activityHills, allHills)
+            html_content = config.getEmailTemplate('Email.html')
+            html_content = composeMail(html_content, activity, activityHills, allHills)
             
             for receipient in mailingList:
                 receipientNotifications = [notification for notification in notifications if notification.receipient_id == receipient.id]
@@ -112,9 +113,7 @@ def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
         return False, activityHills
 
    
-def composeMail(htmlFile: str, activity: StravaAPI.Activity, activityHills: List[googleSheetsAPI.Hill], allHills: List[googleSheetsAPI.Hill]) -> str:
-    with open(htmlFile, 'r') as file:
-        html_content = file.read()
+def composeMail(html_content: str, activity: StravaAPI.Activity, activityHills: List[googleSheetsAPI.Hill], allHills: List[googleSheetsAPI.Hill]) -> str:
     
     backgroundImg = StravaAPI.getPrimaryActivityPhoto(activity.id)
 
@@ -136,12 +135,10 @@ def composeMail(htmlFile: str, activity: StravaAPI.Activity, activityHills: List
     return html_content
 
 
-def composeFollowupEmail(htmlFile: str, activity: StravaAPI.Activity) -> str:
-    with open(htmlFile, 'r') as file:
-        html_content = file.read()
+def composeFollowupEmail(html_content: str, activityID: int) -> str:
     
     html_content = html_content\
-        .replace("{StravaLink}", f"https://www.strava.com/activities/{activity.id}")
+        .replace("{StravaLink}", f"https://www.strava.com/activities/{activityID}")
     
     return html_content
 
@@ -158,7 +155,8 @@ def bullyReceipients():
         activity = StravaAPI.getActivityById(activityID)
         if not activity.private:
             kudoers = StravaAPI.getActivityKudoers(activityID, activity.kudos_count)
-            html_content = composeFollowupEmail('FollowUpEmail.html', activity)
+            html_content = config.getEmailTemplate('FollowUpEmail.html')
+            html_content = composeFollowupEmail(html_content, activityID)
             for notification in notifications:
                 receipient = config.getReceipient(notification.receipient_id)
                 if receipient.on_strava:

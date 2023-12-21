@@ -1,4 +1,4 @@
-import StravaAPI
+import library.StravaAPI as StravaAPI
 
 def setNewEventSubscription():
     subs = StravaAPI.getSubscriptions()

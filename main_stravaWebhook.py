@@ -1,7 +1,7 @@
 #for use with google cloud functions
 from flask import jsonify, Request, Response
 import functions_framework
-import config
+import data.config as config
 import concurrent.futures
 import requests
 

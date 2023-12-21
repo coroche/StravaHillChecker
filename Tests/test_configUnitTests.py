@@ -1,11 +1,11 @@
-import config
-import test_data
+import data.config as config
+from Tests.testdata import getTestData, asdict
 
-testData = test_data.getTestData()
+testData = getTestData()
 
 def test_getConfig():
     settings = config.getConfig()
-    settings_dict = test_data.asdict(settings)
+    settings_dict = asdict(settings)
     assert all(value is not None for value in settings_dict.values())
 
 def test_getParameter():
@@ -55,3 +55,6 @@ def test_getReceipient():
     assert receipient.email == testData.ReceipientEmail
 
 
+def test_getEmailTemplate():
+    html = config.getEmailTemplate('Email.html')
+    assert html

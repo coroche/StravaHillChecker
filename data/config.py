@@ -3,6 +3,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from dataclasses import dataclass, asdict
 from typing import List
+import os
 
 
 cred = credentials.Certificate('data/firebaseServiceAccountKey.json')
@@ -121,5 +122,13 @@ def getReceipient(id: str) -> Receipient:
     data = db.collection('mailing_list').document(id).get().to_dict()
     return Receipient(id = id, **data)
 
+
+def getEmailTemplate(filename):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_dir, 'email_templates', filename)
+
+    with open(file_path, 'r') as file:
+        html_content = file.read()
+    return html_content
     
 
