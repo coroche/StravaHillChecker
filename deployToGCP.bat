@@ -7,25 +7,15 @@ REM Set root for python tests
 set PYTHONPATH=%CD%
 
 echo Running tests...
-python Tests\test_configUnitTests.py
-if %ERRORLEVEL% NEQ 0 (
-    echo test_configUnitTests.py failed!
-    pause
-    exit /b
-)
-
-python Tests\test_emailUnitTests.py
-if %ERRORLEVEL% NEQ 0 (
-    echo test_emailUnitTests.py failed!
-    pause
-    exit /b
-)
-
-python Tests\test_integrationTests.py
-if %ERRORLEVEL% NEQ 0 (
-    echo test_integrationTests.py failed!
-    pause
-    exit /b
+REM loop over all test files
+for %%F in (Tests\test_*.py) do (
+    echo Executing test %%F
+    python %%F
+    if %ERRORLEVEL% NEQ 0 (
+        echo %%F failed!
+        pause
+        exit /b
+    )
 )
 
 echo All tests passed! Proceeding with deployment.

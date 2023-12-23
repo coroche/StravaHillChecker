@@ -1,6 +1,6 @@
 try:
     import sys
-    import library.activityFunctions as activityFunctions
+    from library import activityFunctions
 except Exception as e:
     print(e)
     sys.stdout.flush()

@@ -1,10 +1,10 @@
-import library.StravaAPI as StravaAPI
-import library.googleSheetsAPI as googleSheetsAPI
+from library import StravaAPI
+from library import googleSheetsAPI
 import utm
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
-import data.config as config
+from data import config
 from typing import List
 from library.smtp import sendEmail
 
@@ -72,7 +72,7 @@ def getActivityDetails(activityID: int) -> tuple[str, datetime, StravaAPI.Activi
     return old_description, activityDate, activity
 
 def updateAllDescriptions():
-    activities = StravaAPI.getLoggedInAthleteActivities()
+    activities = StravaAPI.getActivities(20, 1)
     hikes = [activity for activity in activities if activity.sport_type  in ['Hike', 'Walk', 'Run', 'Trail Run']]
     activityIDs = [hike.id for hike in hikes]
 

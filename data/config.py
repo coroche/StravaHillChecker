@@ -51,6 +51,10 @@ class Notification:
     receipient_id: str
     kudos: bool = False
 
+#Remove unwanted dictionary keys before constructing class instance
+def trimData(json_data: dict, dClass: type) -> dict:
+    return {key: value for key, value in json_data.items() if key in dClass.__annotations__}
+
 def getConfig() -> Config:   
     config_data = config_doc_ref.get().to_dict()  
     config = Config(**config_data)

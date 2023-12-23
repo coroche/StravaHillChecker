@@ -1,4 +1,3 @@
-import os.path
 import json
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -7,24 +6,16 @@ from googleapiclient import errors
 from googleapiclient.discovery import build, Resource
 from typing import List
 from datetime import datetime
-import data.config as config
+from data import config
+from dataclasses import dataclass
 
+@dataclass
 class Hill:
-    def __init__(self, data: dict):
-        self.id: int = data.get("#")
-        self.name: str = data.get("Summit or Place")
-        self.latitude: float = data.get("Latitude")
-        self.longitude: float = data.get("Longitude")
-        self.done: bool = data.get("DoneBool")
-
-    def asDict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
-            'done': self.done,
-            }
+    id: int
+    name: str
+    latitude: float
+    longitude: float
+    done: bool
 
 
 def login() -> Credentials:
@@ -65,9 +56,7 @@ def getPeaks(SCRIPT_ID: str, service: Resource) -> List[Hill]:
                 "devMode": True}
     try:
         response = service.scripts().run(body=request, scriptId=SCRIPT_ID).execute()
-        hills = []
-        for hill_data in json.loads(response['response']['result']):
-            hills.append(Hill(hill_data))
+        hills = [Hill(**config.trimData(hill_data, Hill)) for hill_data in json.loads(response['response']['result'])]
         return hills
     except errors.HttpError as error:
         print(error.content)
@@ -78,7 +67,8 @@ def markAsDone(SCRIPT_ID: str, service: Resource, peakIDs: List[int], dateClimbe
                 "parameters": [peakIDs, dateClimbed.strftime('%Y-%m-%d'), activityID],
                 "devMode": True}
     try:
-        service.scripts().run(body=request, scriptId=SCRIPT_ID).execute()
+        response = service.scripts().run(body=request, scriptId=SCRIPT_ID).execute()
+        return response
     except errors.HttpError as error:
         print(error.content)
 

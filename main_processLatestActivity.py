@@ -1,9 +1,10 @@
 #for use with google cloud functions
 from flask import jsonify, Request, Response
 import functions_framework
-import library.activityFunctions as activityFunctions
-import data.config as config
+from library.activityFunctions import processActivity
+from data import config
 from library.StravaAPI import getActivities
+from dataclasses import asdict
 
 
 @functions_framework.http
@@ -19,12 +20,12 @@ def hello_http(request: Request) -> Response:
         
         else:
 
-            _, hills = activityFunctions.processActivity(latestActivityID)
+            _, hills = processActivity(latestActivityID)
             config.write('last_parsed_activity', latestActivityID)
             response = {
                 "ActivityID": latestActivityID,
                 "HillsClimbed": len(hills),
-                "Hills": [hill.asDict() for hill in hills]
+                "Hills": [asdict(hill) for hill in hills]
             }
         
             return jsonify(response), 200

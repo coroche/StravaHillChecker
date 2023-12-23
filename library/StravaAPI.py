@@ -1,6 +1,6 @@
 import requests
 import json
-import data.config as config
+from data import config
 from typing import List
 from dataclasses import dataclass
 
@@ -8,7 +8,6 @@ from dataclasses import dataclass
 class Activity:
     id: int
     name: str
-    description: str
     start_date_local: str
     sport_type: str
     distance: float
@@ -17,6 +16,7 @@ class Activity:
     visibility: str
     private: bool
     kudos_count: int
+    description: str = ''
 
 
 @dataclass
@@ -55,9 +55,6 @@ class ActivityPhoto:
 
 settings = config.getConfig()
 
-def trimData(json_data: dict, dClass: type) -> dict:
-    return {key: value for key, value in json_data.items() if key in dClass.__annotations__}
-
 def makeRequest(method: str, url: str, **kwargs) -> requests.Response:
     response = requests.request(method, url, **kwargs)
     if response.status_code == 401:
@@ -83,7 +80,7 @@ def refreshTokens():
     }
 
     response = requests.request("POST", url, data=payload)
-    token_data = trimData(json.loads(response.text), TokenResponse)
+    token_data = config.trimData(json.loads(response.text), TokenResponse)
     tokens = TokenResponse(**token_data)
     
     settings.access_token = tokens.access_token
@@ -98,22 +95,20 @@ def getLoggedInAthlete() -> Athlete:
 
     response = makeRequest("GET", url, headers=headers)
     athlete_data: dict = json.loads(response.text)
-    athlete_data = trimData(athlete_data, Athlete)
+    athlete_data = config.trimData(athlete_data, Athlete)
     return Athlete(**athlete_data)
 
 
-def getLoggedInAthleteActivities() -> List[Activity]:
+def getActivities(per_page: int, page: int) -> List[Activity]:
     url = settings.base_url + "/athlete/activities"
     headers = {'Authorization': 'Bearer ' + settings.access_token}
     params = {
-        'per_page': 20,
-        'page': 1
+        'per_page': str(per_page),
+        'page': str(page)
     }
 
     response = makeRequest("GET", url, headers=headers, params=params)
-    activity_list = []
-    for activity_data in json.loads(response):
-        activity_list.append(Activity(activity_data))
+    activity_list: List[Activity] = [Activity(**config.trimData(activity_data, Activity)) for activity_data in json.loads(response.text)]
     return activity_list
 
 
@@ -125,7 +120,7 @@ def getActivityById(activityID: int) -> Activity:
     if response.status_code == 404:
         return Activity(0, '','','','')
     activity_json: dict = json.loads(response.text)
-    activity_json = trimData(activity_json, Activity)
+    activity_json = config.trimData(activity_json, Activity)
     activity = Activity(**activity_json)
     return activity
 
@@ -139,20 +134,21 @@ def getActivityStreams(activityID: int, streamTypes: List[str]) -> List[Stream]:
 
     response = makeRequest("GET", url, headers=headers, params=params)  
     
-    streams_list = [Stream(**trimData(stream_data, Stream)) for stream_data in json.loads(response.text)]
+    streams_list = [Stream(**config.trimData(stream_data, Stream)) for stream_data in json.loads(response.text)]
     streams_list = [stream for stream in streams_list if stream.type in streamTypes]
     return streams_list
 
 
 def getPrimaryActivityPhoto(activityID: int) -> str:
-    url = f"{settings.base_url}/activities/{activityID}/photos?size=5000"
+    url = f"{settings.base_url}/activities/{activityID}/photos"
     headers = {'Authorization': 'Bearer ' + settings.access_token}
+    params = {'size': 5000}
 
-    response = makeRequest("GET", url, headers=headers)
+    response = makeRequest("GET", url, headers=headers, params=params)
     if response.status_code == 404:
         return settings.default_email_image
     
-    photo_list = [ActivityPhoto(**trimData(photo_data, ActivityPhoto)) for photo_data in json.loads(response.text)]
+    photo_list = [ActivityPhoto(**config.trimData(photo_data, ActivityPhoto)) for photo_data in json.loads(response.text)]
     primary_photo = [photo for photo in photo_list if photo.default_photo]
     if len(primary_photo) == 0:
         return settings.default_email_image
@@ -171,29 +167,40 @@ def getActivityKudoers(activityID: int, kudos_count: int) -> List[Athlete]:
     params = {'per_page': kudos_count}
 
     response = makeRequest("GET", url, headers=headers, params=params)    
-    kudos_list = [Athlete(**trimData(kudos_data, Athlete)) for kudos_data in json.loads(response.text)]  
+    kudos_list = [Athlete(**config.trimData(kudos_data, Athlete)) for kudos_data in json.loads(response.text)]  
     return kudos_list
 
 
-def updateActivityDescription(activityID: int, description: str) -> dict:
+def updateActivityDescription(activityID: int, description: str) -> Activity:
     url = settings.base_url + "/activities/" + str(activityID)
     payload = {'description': description}
     headers = {'Authorization': 'Bearer ' + settings.access_token}
     
     response = makeRequest("PUT", url, headers=headers, data=payload)
-    return json.loads(response.text)
+
+    activity_json: dict = json.loads(response.text)
+    activity_json = config.trimData(activity_json, Activity)
+    activity = Activity(**activity_json)
+    return activity
 
 
 def getSubscriptions() -> List[Subscription]:
     url = settings.base_url + "/push_subscriptions?client_id=" + str(settings.client_id) + "&client_secret=" + settings.client_secret
 
     response = requests.request("GET", url)
-    subscription_list = []
-    for subscription_data in json.loads(response):
-        subscription_data = trimData(subscription_data, Subscription)
-        subscription_list.append(Subscription(**subscription_data))
+    subscription_list = [Subscription(**config.trimData(subscription_data, Subscription)) for subscription_data in json.loads(response.text)]
     return subscription_list
 
+def getSubscriptions() -> dict:
+    url = settings.base_url + "/push_subscriptions"
+
+    params = { 
+        'client_id': settings.client_id,
+        'client_secret': settings.client_secret,
+    }
+
+    response = requests.request("GET", url, params=params)
+    return json.loads(response.text)
 
 def createSubscription() -> dict:
     url = settings.base_url + "/push_subscriptions"
@@ -223,19 +230,3 @@ def deleteSubscription(subscriptionID):
     else:
         return ''
 
-def getActivities(per_page: int, page: int) -> List[Activity]:
-    url = settings.base_url + "/athlete/activities"
-    headers = {'Authorization': 'Bearer ' + settings.access_token}
-    params = {
-        'per_page': str(per_page),
-        'page': str(page)
-    }
-
-    response = makeRequest("GET", url, headers=headers, params=params)
-    response = json.loads(response.text)
-    activity_list: List[Activity] = []
-    for activity_data in response:
-        activity_data = trimData(activity_data, Activity)
-        activity_data.setdefault("description", "")
-        activity_list.append(Activity(**activity_data))
-    return activity_list

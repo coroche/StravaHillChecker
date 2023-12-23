@@ -1,4 +1,4 @@
-import data.config as config
+from data import config
 from Tests.testdata import getTestData, asdict
 from library.activityFunctions import composeMail, composeFollowupEmail
 from library.googleSheetsAPI import Hill
@@ -16,38 +16,19 @@ def test_sendEmail(mocker):
 
     html = config.getEmailTemplate('Email.html')
 
-    hill1 = {
-            '#': 1,
-            'Summit or Place': 'Hill1',
-            'Latitude': 0.0,
-            'Longitude': 0.0,
-            'DoneBool': True,
-            }
-    
-    hill2 = {
-            '#': 2,
-            'Summit or Place': 'Hill2',
-            'Latitude': 0.0,
-            'Longitude': 0.0,
-            'DoneBool': True,
-            }
-    
-    hill3 = {
-            '#': 3,
-            'Summit or Place': 'Hill3',
-            'Latitude': 0.0,
-            'Longitude': 0.0,
-            'DoneBool': False,
-            }
+    hill1 = Hill(1, 'Hill1', 0.0, 0.0, True)
+    hill2 = Hill(2, 'Hill2', 0.0, 0.0, True)
+    hill3 = Hill(3, 'Hill3', 0.0, 0.0, False)
 
-    activityhills = [Hill(hill1), Hill(hill2)]
-    allhills = [Hill(hill1), Hill(hill2), Hill(hill3)]
+    activityhills = [hill1, hill2]
+    allhills = [hill1, hill2, hill3]
     activity = getActivityById(testData.ActivityWithHills)
     html = composeMail(html, activity, activityhills, allhills)
     sendEmail(html, testData.TestEmail, 'Test')
 
     assert mock_SMTP.return_value.__enter__.return_value.login.call_count == 1
     assert mock_SMTP.return_value.__enter__.return_value.sendmail.call_count == 1
+    assert mock_SMTP.return_value.__enter__.return_value.sendmail.call_args.args[1] == testData.TestEmail
 
 
 def test_sendFollowupEmail(mocker):
@@ -62,3 +43,4 @@ def test_sendFollowupEmail(mocker):
 
     assert mock_SMTP.return_value.__enter__.return_value.login.call_count == 1
     assert mock_SMTP.return_value.__enter__.return_value.sendmail.call_count == 1
+    assert mock_SMTP.return_value.__enter__.return_value.sendmail.call_args.args[1] == testData.TestEmail

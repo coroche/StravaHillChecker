@@ -12,6 +12,7 @@ class TestData:
     ReceipientID: str
     ReceipientEmail: str
     TestEmail: str
+    StravaName: str
 
 def getTestData() -> TestData:
     with open('Tests/testData.json') as file:

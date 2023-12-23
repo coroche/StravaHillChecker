@@ -1,4 +1,4 @@
-import data.config as config
+from data import config
 from Tests.testdata import getTestData, asdict
 
 testData = getTestData()
