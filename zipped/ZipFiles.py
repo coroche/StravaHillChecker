@@ -28,3 +28,9 @@ files_to_zip = ['library/activityFunctions.py', 'data/config.py', 'library/googl
 archive_file_names = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/email_templates/FollowUpEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
 zip_file_name = 'zipped/sendReminders.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
+
+#Zip files for the subscribe cloud function
+files_to_zip = ['data/config.py', 'main_subscribe.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/email_templates/message.html', 'data/email_templates/subscribeForm.html', 'data/email_templates/verificationEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
+archive_file_names = ['data/config.py', 'main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/email_templates/message.html', 'data/email_templates/subscribeForm.html', 'data/email_templates/verificationEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
+zip_file_name = 'zipped/subscribe.zip'
+zip_files(files_to_zip, zip_file_name, archive_file_names)

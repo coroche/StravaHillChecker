@@ -4,6 +4,7 @@ from firebase_admin import credentials, firestore
 from dataclasses import dataclass, asdict
 from typing import List
 import os
+import uuid
 
 
 cred = credentials.Certificate('data/firebaseServiceAccountKey.json')
@@ -38,8 +39,10 @@ class Receipient:
     id: str
     email: str
     on_strava: bool
-    strava_firstname: str
-    strava_lastname: str
+    strava_firstname: str = ''
+    strava_lastname: str = ''
+    email_verified: bool = False
+    verification_token: str = str(uuid.uuid4())
     
     @property
     def strava_fullname(self) -> str:
@@ -87,7 +90,7 @@ def writeToken(token_data: str):
     
 
 def getMailingList() -> List[Receipient]:   
-    mailingList = db.collection('mailing_list').get()
+    mailingList = db.collection('mailing_list').where('email_verified', '==', True).get()
     return [Receipient(id = doc.id, **doc.to_dict()) for doc in mailingList]
 
 
@@ -124,7 +127,43 @@ def updateNotification(activityID: int, receipientID: str):
 
 def getReceipient(id: str) -> Receipient:
     data = db.collection('mailing_list').document(id).get().to_dict()
-    return Receipient(id = id, **data)
+    if data:
+        return Receipient(id = id, **data)
+    else:
+        return None
+
+def getReceipientByEmail(email: str) -> List[Receipient]:
+    data = db.collection('mailing_list').where('email', '==', email).get()
+    return [Receipient(id = doc.id, **doc.to_dict()) for doc in data]
+
+def createReceipient(email: str, onStrava: bool, firstname: str = '', surname: str = '') -> tuple[bool, str, str]:
+    if getReceipientByEmail(email):
+        return False, 'Email address already subscribed', None
+    elif onStrava and (not firstname or not surname):
+        return False, 'Name must be provided if on strava', None
+    else:
+        if surname:
+            surname = f'{surname[0]}.'
+        receipient = Receipient('', email, onStrava, firstname, surname)
+        receipient_dict = asdict(receipient)
+        receipient_dict.pop('id')
+        collection_ref = db.collection('mailing_list')
+        _, doc = collection_ref.add(receipient_dict)
+        return True, None, doc.id
+
+def deleteReceipient(id: str) -> None:
+    receipient_doc_ref = db.collection('mailing_list').document(id)
+    notification_collection_ref = db.collection('notifications')
+    notification_doc_refs = notification_collection_ref.where('receipient_id', '==', id).stream()
+    for notification in notification_doc_refs:
+        notification = notification_collection_ref.document(notification.id)
+        notification.delete()
+    receipient_doc_ref.delete()
+
+
+def verifyReceipientEmail(id: str) -> None:
+    doc_ref = db.collection('mailing_list').document(id)
+    doc_ref.update({'email_verified': True})
 
 
 def getEmailTemplate(filename):
@@ -134,5 +173,26 @@ def getEmailTemplate(filename):
     with open(file_path, 'r') as file:
         html_content = file.read()
     return html_content
+
+def addFieldToDocs(collection_name: str, new_field_name: str, default_value: any) -> None:
+    docs = db.collection(collection_name).stream()
+
+    for doc in docs:
+        doc_dict = doc.to_dict()
+        if new_field_name not in doc_dict:
+            doc.reference.update({
+                new_field_name: default_value
+            })
+
+
+def removeFieldFromDocs(collection_name: str, field_to_delete: str) -> None:
+    docs = db.collection(collection_name).stream()
+
+    for doc in docs:
+        doc_dict = doc.to_dict()
+        if field_to_delete in doc_dict:
+            doc.reference.update({
+                field_to_delete: firestore.DELETE_FIELD
+        })
     
 

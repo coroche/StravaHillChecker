@@ -50,6 +50,7 @@ def test_writeAndUpdateNotification():
     config.deleteNotification(123, 'ABC123')
     assert not config.getNotification(123, 'ABC123')
 
+
 def test_getReceipient():
     receipient = config.getReceipient(testData.ReceipientID)
     assert receipient.email == testData.ReceipientEmail
@@ -58,3 +59,44 @@ def test_getReceipient():
 def test_getEmailTemplate():
     html = config.getEmailTemplate('Email.html')
     assert html
+
+def test_createReceipient():
+    success, message, id = config.createReceipient('test@mail.com', True, 'John', 'Doe')
+    assert success
+    receipient = config.getReceipient(id)
+    assert receipient.email == 'test@mail.com'
+    assert receipient.on_strava
+    assert receipient.strava_firstname == 'John'
+    assert receipient.strava_lastname == 'D.'
+    assert receipient.strava_fullname == 'JohnD.'
+
+    config.deleteReceipient(id)
+
+def test_createReceipient_emailexists():
+    success, _, id = config.createReceipient('test@mail.com', True, 'John', 'Doe')
+    assert success
+    success, message, _ = config.createReceipient('test@mail.com', False)
+    assert not success
+    assert message == 'Email address already subscribed'
+    receipients = config.getReceipientByEmail('test@mail.com')
+    assert len(receipients) == 1
+
+    config.deleteReceipient(id)
+
+def test_deleteReceipient():
+    success, _, id = config.createReceipient('test@mail.com', False)
+    assert success
+    receipient = config.getReceipient(id)
+    assert receipient.email == 'test@mail.com'
+    config.deleteReceipient(id)
+    receipients = config.getReceipientByEmail('test@mail.com')
+    assert not receipients
+
+def test_verifyReceipientEmail():
+    _, _, id = config.createReceipient('test@mail.com', True, 'John', 'Doe')
+    receipient = config.getReceipient(id)
+    assert not receipient.email_verified
+    config.verifyReceipientEmail(id)
+    receipient = config.getReceipient(id)
+    assert receipient.email_verified
+    config.deleteReceipient(id)

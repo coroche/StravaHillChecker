@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+        }
+        input[type="email"],
+        input[type="text"],
+        input[type="checkbox"],
+        input[type="radio"],
+        button {
+            width: calc(100% - 18px); /* Adjusted width */
+            padding: 10px; /* Increased padding */
+            margin-bottom: 15px; /* Increased margin */
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 16px; /* Larger font size for better readability */
+        }
+        input[type="checkbox"],
+        input[type="radio"] {
+            width: auto; /* Set width to auto */
+            display: inline-block;
+            vertical-align: middle; /* Align vertically */
+            margin-right: 6px; /* Adjust spacing */
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Responsive adjustments */
+        @media screen and (max-width: 600px) {
+            form {
+                padding: 15px;
+            }
+            input[type="email"],
+            input[type="text"],
+            button {
+                width: 100%;
+            }
+        }
+
+        .radio-buttons label {
+            display: inline-block;
+            margin-right: 15px; /* Adjust spacing between labels */
+        }
+        .radio-buttons input[type="radio"] {
+            display: inline-block;
+            margin-right: 5px; /* Adjust spacing between radio inputs */
+        }
+
+        input:user-invalid {
+            border: 2px solid red;
+        }
+
+    </style>
+</head>
+<body>
+    <form method="post">
+        {% if error %}<p style="color: red;">{{ error }}</p>{% endif %}
+        <label for="email">Email:</label>
+        <input type="email" name="email" placeholder="Enter email" required><br>
+        <div class="radio-buttons">
+            <label for="strava">Are you on Strava?</label>
+            <div class="radio-buttons">
+                <label for="yesStrava"><input type="radio" id="yesStrava" name="onStrava" value="yes" required>Yes</label>
+                <label for="noStrava"><input type="radio" id="noStrava" name="onStrava" value="no" required>No</label>
+            </div>
+        </div><br>
+        <div id="nameFields">
+            <p><i>Must match name on Strava exactly</i></p>
+            <label for="firstName" id="firstNameLabel">First name:</label>
+            <input type="text" name="firstName" id="firstNameInput" placeholder="Enter first name"><br>
+            <label for="surname" id="surnameLabel">Surname:</label>
+            <input type="text" name="surname" id="surnameInput" placeholder="Enter surname"><br>
+        </div>    
+        <button type="submit">Submit</button>
+    </form>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const yesStrava = document.getElementById('yesStrava');
+            const noStrava = document.getElementById('noStrava');
+            const nameFields = document.getElementById('nameFields')
+            const firstNameInput = document.getElementById('firstNameInput');
+            const surnameInput = document.getElementById('surnameInput');
+
+            function handleStravaSelection() {
+                if (yesStrava.checked) {
+                    nameFields.style.display = 'block';
+                    firstNameInput.required = true;
+                    surnameInput.required = true;
+                } else {
+                    nameFields.style.display = 'none';
+                    firstNameInput.required = false;
+                    surnameInput.required = false;
+                }
+            }
+
+            yesStrava.addEventListener('change', handleStravaSelection);
+            noStrava.addEventListener('change', handleStravaSelection);
+
+            // Check on page load if radio buttons are unchecked and hide the fields
+            if (!yesStrava.checked) {
+                nameFields.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
