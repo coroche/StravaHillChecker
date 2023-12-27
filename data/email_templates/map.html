@@ -349,9 +349,6 @@
     </script>
     <script>
       const CONFIGURATION = {
-        "locations": [
-          {"title":"Carrauntoohil","address1":"MacGillycuddy's Reeks","address2":"","coords":{"lat":51.99945,"lng":-9.74271},"placeId":"","actions":[{"label":"Open Strava Activity","defaultUrl":"https://www.google.com"}]}
-        ],
         <!-- Add location list here -->
         "mapOptions": {"center":{"lat":38.0,"lng":-100.0},"fullscreenControl":true,"mapTypeControl":false,"streetViewControl":false,"zoom":4,"zoomControl":true,"maxZoom":17,"mapId":""},
         "capabilities": {"input":false,"autocomplete":true,"directions":false,"distanceMatrix":false,"details":false,"actions":true}
@@ -367,7 +364,7 @@
           <button class="select-location">
             <h2 class="name">{{title}}</h2>
           </button>
-          <div class="address">{{address1}}<br>{{address2}}</div>
+          <div class="address">{{area}}<br>{{height}}</div>
           <div class="options">
             {{#each actions}}
               {{#if defaultUrl}}
@@ -400,6 +397,6 @@
       </div>
       <div id="gmp-map"></div>
     </div>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCAaX3kmTXE8FtIKQ5koGtcDoYsFkGgyuk&callback=initMap&libraries=places&solution_channel=GMP_QB_locatorplus_v9_cF" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{APIToken}}&callback=initMap&libraries=places&solution_channel=GMP_QB_locatorplus_v9_cF" async defer></script>
   </body>
 </html>
