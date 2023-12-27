@@ -16,9 +16,9 @@ def test_sendEmail(mocker):
 
     html = config.getEmailTemplate('Email.html')
 
-    hill1 = Hill(1, 'Hill1', 0.0, 0.0, True)
-    hill2 = Hill(2, 'Hill2', 0.0, 0.0, True)
-    hill3 = Hill(3, 'Hill3', 0.0, 0.0, False)
+    hill1 = Hill(1, 'Hill1', 0.0, 0.0, True, 'Area1', True, 1000)
+    hill2 = Hill(2, 'Hill2', 0.0, 0.0, True, 'Area2', True, 1000)
+    hill3 = Hill(3, 'Hill3', 0.0, 0.0, False, 'Area3', False, 1000)
 
     activityhills = [hill1, hill2]
     allhills = [hill1, hill2, hill3]

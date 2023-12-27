@@ -14,7 +14,8 @@ def test_getPeaks():
     assert all([type(peak) == googleSheetsAPI.Hill for peak in peaks])
     for peak in peaks:
         for attr, value in peak.__dict__.items():
-            assert value is not None, f"Attribute '{attr}' has no value in {peak}"
+            if attr not in ['ActivityID']:
+                assert value is not None, f"Attribute '{attr}' has no value in {peak}"
 
 def test_markAsDone():
     creds = googleSheetsAPI.login()

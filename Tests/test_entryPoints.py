@@ -43,9 +43,9 @@ def test_processActivity(mocker):
 
     #Mock call to prevent activity processing
     mocked_ProcessActivity = mocker.patch('main_processActivity.processActivity')
-    hill1 = Hill(1, 'Hill1', 0.0, 0.0, True)
-    hill2 = Hill(2, 'Hill2', 0.0, 0.0, True)
-    hill3 = Hill(3, 'Hill3', 0.0, 0.0, False)
+    hill1 = Hill(1, 'Hill1', 0.0, 0.0, True, 'Area1', True, 1000)
+    hill2 = Hill(2, 'Hill2', 0.0, 0.0, True, 'Area2', True, 1000)
+    hill3 = Hill(3, 'Hill3', 0.0, 0.0, False, 'Area3', False, 1000)
     hills = [hill1, hill2, hill3]
     mocked_ProcessActivity.return_value = (None, hills)
     
@@ -58,7 +58,11 @@ def test_processActivity(mocker):
     
     assert status_code == 200
     assert response.json['ActivityID'] == 12345
-    assert response.json['Hills'] == [{'done': True, 'id': 1, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill1'}, {'done': True, 'id': 2, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill2'}, {'done': False, 'id': 3, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill3'}]
+    assert response.json['Hills'] == [
+        {'done': True, 'id': 1, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill1', 'Area': 'Area1', 'Highest100': True, 'Height': 1000, 'ActivityID':None}, 
+        {'done': True, 'id': 2, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill2', 'Area': 'Area2', 'Highest100': True, 'Height': 1000, 'ActivityID':None},
+        {'done': False, 'id': 3, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill3', 'Area': 'Area3', 'Highest100': False, 'Height': 1000, 'ActivityID':None}
+    ]
     assert response.json['HillsClimbed'] == 3
     assert mocked_ProcessActivity.call_count == 1
     assert mocked_ProcessActivity.call_args.args == (12345,)
@@ -68,9 +72,9 @@ def test_processLatestActivity(mocker):
 
     #Mock call to prevent activity processing
     mocked_ProcessActivity = mocker.patch('main_processLatestActivity.processActivity')
-    hill1 = Hill(1, 'Hill1', 0.0, 0.0, True)
-    hill2 = Hill(2, 'Hill2', 0.0, 0.0, True)
-    hill3 = Hill(3, 'Hill3', 0.0, 0.0, False)
+    hill1 = Hill(1, 'Hill1', 0.0, 0.0, True, 'Area1', True, 1000)
+    hill2 = Hill(2, 'Hill2', 0.0, 0.0, True, 'Area2', True, 1000)
+    hill3 = Hill(3, 'Hill3', 0.0, 0.0, False, 'Area3', False, 1000)
     hills = [hill1, hill2, hill3]
     mocked_ProcessActivity.return_value = (None, hills)
     
@@ -86,7 +90,11 @@ def test_processLatestActivity(mocker):
     
     assert status_code == 200
     assert response.json['ActivityID'] == 12345
-    assert response.json['Hills'] == [{'done': True, 'id': 1, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill1'}, {'done': True, 'id': 2, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill2'}, {'done': False, 'id': 3, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill3'}]
+    assert response.json['Hills'] == [
+        {'done': True, 'id': 1, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill1', 'Area': 'Area1', 'Highest100': True, 'Height': 1000, 'ActivityID':None}, 
+        {'done': True, 'id': 2, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill2', 'Area': 'Area2', 'Highest100': True, 'Height': 1000, 'ActivityID':None},
+        {'done': False, 'id': 3, 'latitude': 0.0, 'longitude': 0.0, 'name': 'Hill3', 'Area': 'Area3', 'Highest100': False, 'Height': 1000, 'ActivityID':None}
+    ]    
     assert response.json['HillsClimbed'] == 3
     assert mocked_ProcessActivity.call_count == 1
     assert mocked_ProcessActivity.call_args.args == (12345,)

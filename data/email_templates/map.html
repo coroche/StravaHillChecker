@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Locator</title>
+    <title>Vandeleur-Lynams</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
@@ -229,45 +229,54 @@
 
         var bigIcon = 45;
         var smallIcon = 30;
+        var icon_url = "{{icon_bucket}}"
 
         var HighestHundredIcon = {
-          url: "/static/images/HighestHundred.png",
+          url: icon_url + "/HighestHundred.png",
           scaledSize: new google.maps.Size(smallIcon, smallIcon),
+          anchor: new google.maps.Point(smallIcon/2, smallIcon/2),
         };
 
         var VLIcon = {
-          url: "/static/images/VL.png",
+          url: icon_url + "/VL.png",
           scaledSize: new google.maps.Size(smallIcon, smallIcon),
+          anchor: new google.maps.Point(smallIcon/2, smallIcon/2),
         };
 
         var HighestHundredDoneIcon = {
-          url: "/static/images/HighestHundredDone.png",
+          url: icon_url + "/HighestHundredDone.png",
           scaledSize: new google.maps.Size(smallIcon, smallIcon),
+          anchor: new google.maps.Point(smallIcon/2, smallIcon/2),
         };
 
         var VLDoneIcon = {
-          url: "/static/images/VLDone.png",
+          url: icon_url + "/VLDone.png",
           scaledSize: new google.maps.Size(smallIcon, smallIcon),
+          anchor: new google.maps.Point(smallIcon/2, smallIcon/2),
         };
 
         var HighestHundredIcon_selected = {
-          url: "/static/images/HighestHundred.png",
+          url: icon_url + "/HighestHundred.png",
           scaledSize: new google.maps.Size(bigIcon, bigIcon),
+          anchor: new google.maps.Point(bigIcon/2, bigIcon/2),
         };
 
         var VLIcon_selected = {
-          url: "/static/images/VL.png",
+          url: icon_url + "/VL.png",
           scaledSize: new google.maps.Size(bigIcon, bigIcon),
+          anchor: new google.maps.Point(bigIcon/2, bigIcon/2),
         };
 
         var HighestHundredDoneIcon_selected = {
-          url: "/static/images/HighestHundredDone.png",
+          url: icon_url + "/HighestHundredDone.png",
           scaledSize: new google.maps.Size(bigIcon, bigIcon),
+          anchor: new google.maps.Point(bigIcon/2, bigIcon/2),
         };
 
         var VLDoneIcon_selected = {
-          url: "/static/images/VLDone.png",
+          url: icon_url + "/VLDone.png",
           scaledSize: new google.maps.Size(bigIcon, bigIcon),
+          anchor: new google.maps.Point(bigIcon/2, bigIcon/2),
         };
 
         var icons = {

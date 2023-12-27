@@ -1,14 +1,12 @@
-from flask import Flask,request, render_template, redirect, url_for
+from flask import Flask
 from data.config import getEmailTemplate
-from data import config
-from library.smtp import sendEmail
 from library.googleSheetsAPI import getPeaks, login, buildService, Hill
 from data.config import getConfig
 import json
 
 app = Flask(__name__)
 
-def createMapLocationDict(peak: Hill) -> dict:
+def createMapLocationDict(peak: Hill, icon_bucket: str) -> dict:
     cat, done = 'VL','' 
     if peak.done:
         done = 'Done'
@@ -26,7 +24,7 @@ def createMapLocationDict(peak: Hill) -> dict:
         "actions":actions,
         "icon": f"{cat}{done}Icon",
         "bigicon": f"{cat}{done}Icon_selected",
-        "iconsrc": f"/static/images/{cat}{done}.png"
+        "iconsrc": f"{icon_bucket}/{cat}{done}.png"
         }
     return d
 
@@ -36,14 +34,15 @@ def serve_form():
     settings = getConfig()
     
     peaks = getPeaks(settings.google_script_ID, service)
-    peaks_dict = [createMapLocationDict(peak) for peak in peaks]
+    peaks_dict = [createMapLocationDict(peak, settings.map_icon_bucket) for peak in peaks]
     json_data = json.dumps(peaks_dict)
     js_list_content = f'"locations": {json_data},'
 
     html = getEmailTemplate('map.html')
     html = html\
         .replace('<!-- Add location list here -->', js_list_content)\
-        .replace('{{APIToken}}', settings.google_maps_api_key)
+        .replace('{{APIToken}}', settings.google_maps_api_key)\
+        .replace('{{icon_bucket}}', settings.map_icon_bucket)
 
     return html
 

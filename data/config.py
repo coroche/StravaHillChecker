@@ -33,6 +33,7 @@ class Config:
     error_email: str
     default_email_image: str
     google_maps_api_key: str
+    map_icon_bucket: str
     test_parameter: str = ''
 
 @dataclass
