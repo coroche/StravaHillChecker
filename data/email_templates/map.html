@@ -107,6 +107,11 @@
         margin: 0;
       }
 
+      img.menuIcon {
+        height: 1.2em;
+        padding-right: 0.5em;
+      }
+
       #locations-panel-list .location-result .address {
         color: #757575;
         font-size: 0.9em;
@@ -170,7 +175,7 @@
     </style>
     <script>
       'use strict';
-
+      
 
       /**
        * Defines an instance of the Locator+ solution, to be instantiated
@@ -218,49 +223,51 @@
             marker.icon = icons[locator.locations[marker.index].icon];
             marker.zIndex = 273 - marker.index
           }
-          markers[locationIdx].setAnimation(null);
           markers[locationIdx].icon = icons[locator.locations[locationIdx].bigicon];
           markers[locationIdx].zIndex = 274
         };
 
+        var bigIcon = 45;
+        var smallIcon = 30;
+
         var HighestHundredIcon = {
-          url: "/static/images/HH.png",
-          scaledSize: new google.maps.Size(30, 30),
+          url: "/static/images/HighestHundred.png",
+          scaledSize: new google.maps.Size(smallIcon, smallIcon),
         };
 
         var VLIcon = {
           url: "/static/images/VL.png",
-          scaledSize: new google.maps.Size(30, 30),
+          scaledSize: new google.maps.Size(smallIcon, smallIcon),
         };
 
         var HighestHundredDoneIcon = {
-          url: "/static/images/HHDone.png",
-          scaledSize: new google.maps.Size(30, 30),
+          url: "/static/images/HighestHundredDone.png",
+          scaledSize: new google.maps.Size(smallIcon, smallIcon),
         };
 
         var VLDoneIcon = {
           url: "/static/images/VLDone.png",
-          scaledSize: new google.maps.Size(30, 30),
+          scaledSize: new google.maps.Size(smallIcon, smallIcon),
         };
 
         var HighestHundredIcon_selected = {
-          url: "/static/images/HH.png",
-          scaledSize: new google.maps.Size(50, 50),
+          url: "/static/images/HighestHundred.png",
+          scaledSize: new google.maps.Size(bigIcon, bigIcon),
         };
 
         var VLIcon_selected = {
           url: "/static/images/VL.png",
-          scaledSize: new google.maps.Size(50, 50),
+          scaledSize: new google.maps.Size(bigIcon, bigIcon),
         };
 
         var HighestHundredDoneIcon_selected = {
-          url: "/static/images/HHDone.png",
-          scaledSize: new google.maps.Size(50, 50),
+          url: "/static/images/HighestHundredDone.png",
+          scaledSize: new google.maps.Size(bigIcon, bigIcon),
         };
 
         var VLDoneIcon_selected = {
           url: "/static/images/VLDone.png",
-          scaledSize: new google.maps.Size(50, 50),
+          scaledSize: new google.maps.Size(bigIcon, bigIcon),
         };
 
         var icons = {
@@ -312,7 +319,7 @@
           for (let i = 0; i < locations.length; i++) {
             locations[i].index = i;
           }
-          sectionNameEl.textContent = `All locations (${locations.length})`;
+          sectionNameEl.textContent = `Vandeleur-Lynams (${locations.length})`;
           const resultItemContext = {locations: locations};
           resultsContainerEl.innerHTML = itemsTemplate(resultItemContext);
           for (let item of resultsContainerEl.children) {
@@ -350,7 +357,7 @@
     <script>
       const CONFIGURATION = {
         <!-- Add location list here -->
-        "mapOptions": {"center":{"lat":38.0,"lng":-100.0},"fullscreenControl":true,"mapTypeControl":false,"streetViewControl":false,"zoom":4,"zoomControl":true,"maxZoom":17,"mapId":""},
+        "mapOptions": {"center":{"lat":53.449,"lng":-7.503},"fullscreenControl":true,"mapTypeControl":false,"streetViewControl":false,"zoom":4,"zoomControl":true,"maxZoom":17,"mapTypeId":"terrain"},
         "capabilities": {"input":false,"autocomplete":true,"directions":false,"distanceMatrix":false,"details":false,"actions":true}
       };
 
@@ -362,7 +369,7 @@
       {{#each locations}}
         <li class="location-result" data-location-index="{{index}}">
           <button class="select-location">
-            <h2 class="name">{{title}}</h2>
+            <h2 class="name"><img class="menuIcon" src="{{iconsrc}}">{{title}}</h2>
           </button>
           <div class="address">{{area}}<br>{{height}}</div>
           <div class="options">

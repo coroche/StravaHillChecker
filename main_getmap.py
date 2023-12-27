@@ -16,7 +16,7 @@ def createMapLocationDict(peak: Hill) -> dict:
         cat = 'HighestHundred'
     actions = []
     if peak.ActivityID:
-        actions = [{"label":"Open Strava Activity","defaultUrl":f"https://www.strava.com/activities/{peak.ActivityID}"}]
+        actions = [{"label":"Strava","defaultUrl":f"https://www.strava.com/activities/{peak.ActivityID}"}]
     
     d = {
         "title":peak.name,
@@ -25,7 +25,8 @@ def createMapLocationDict(peak: Hill) -> dict:
         "coords":{"lat":peak.latitude,"lng":peak.longitude},
         "actions":actions,
         "icon": f"{cat}{done}Icon",
-        "bigicon": f"{cat}{done}Icon_selected"
+        "bigicon": f"{cat}{done}Icon_selected",
+        "iconsrc": f"/static/images/{cat}{done}.png"
         }
     return d
 
