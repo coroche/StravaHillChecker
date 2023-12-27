@@ -32,6 +32,7 @@ class Config:
     smtp_password: str
     error_email: str
     default_email_image: str
+    google_maps_api_key: str
     test_parameter: str = ''
 
 @dataclass

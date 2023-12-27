@@ -16,6 +16,10 @@ class Hill:
     latitude: float
     longitude: float
     done: bool
+    Area: str
+    Highest100: bool
+    Height: float
+    ActivityID: int = None
 
 
 def login() -> Credentials:
