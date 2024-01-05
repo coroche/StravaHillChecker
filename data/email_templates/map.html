@@ -366,7 +366,23 @@
     <script>
       const CONFIGURATION = {
         <!-- Add location list here -->
-        "mapOptions": {"center":{"lat":53.449,"lng":-7.503},"fullscreenControl":true,"mapTypeControl":false,"streetViewControl":false,"zoom":4,"zoomControl":true,"maxZoom":17,"mapTypeId":"terrain"},
+        "mapOptions": {
+          "center":{"lat":53.449,"lng":-7.503},
+          "fullscreenControl":true,
+          "mapTypeControl":false,
+          "streetViewControl":false,
+          "zoom":7,
+          "zoomControl":true,
+          "maxZoom":17,
+          "mapTypeId":"terrain",
+          "styles": [
+            {
+              "featureType": "landscape",
+              "elementType": "labels",
+              "stylers": [{ "visibility": "off" }]
+            }
+          ]
+        },
         "capabilities": {"input":false,"autocomplete":true,"directions":false,"distanceMatrix":false,"details":false,"actions":true}
       };
 
