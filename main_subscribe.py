@@ -9,10 +9,10 @@ def serve_form():
     error=None
     if request.method == 'POST':
         try:
-            email = request.form['email']
+            email = request.form['email'].strip()
             onStrava = request.form['onStrava'] == 'yes'
-            firstname = request.form['firstName']
-            surname = request.form['surname']
+            firstname = request.form['firstName'].strip()
+            surname = request.form['surname'].strip()
 
             success, message, id = config.createReceipient(email, onStrava, firstname, surname)
             if not success:
