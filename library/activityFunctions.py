@@ -3,7 +3,7 @@ from library import googleSheetsAPI
 import utm
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime
+from datetime import datetime, timezone
 from data import config
 from typing import List
 from library.smtp import sendEmail
@@ -94,7 +94,8 @@ def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
         hillIDs = [hill.id for hill in activityHills]
         googleSheetsAPI.markAsDone(settings.google_script_ID, service, hillIDs, activityDate, activityID)
 
-        if not activity.private:
+        timeDiff = datetime.now(timezone.utc) - activityDate
+        if not activity.private and timeDiff.days <= 7:
             notifications = config.getActivityNotifications(activity.id)
             mailingList = config.getMailingList()
             html_content = config.getEmailTemplate('Email.html')
