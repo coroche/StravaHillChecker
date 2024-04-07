@@ -61,16 +61,6 @@ def populateDescription(activityID: int, hills: List[googleSheetsAPI.Hill], cust
         
         StravaAPI.updateActivityDescription(activityID, description)
 
-def getActivityDetails(activityID: int) -> tuple[str, datetime, StravaAPI.Activity]:
-    activity = StravaAPI.getActivityById(activityID)
-    old_description = activity.description
-    if old_description is None:
-        old_description = ""
-    if old_description != "" and 'VLs:' in old_description:
-        old_description = old_description[0:old_description.find('VLs:')]
-    activityDate = datetime.strptime(activity.start_date_local, '%Y-%m-%dT%H:%M:%S%z')
-    return old_description, activityDate, activity
-
 def updateAllDescriptions():
     activities = StravaAPI.getActivities(20, 1)
     hikes = [activity for activity in activities if activity.sport_type  in ['Hike', 'Walk', 'Run', 'Trail Run']]
@@ -88,13 +78,18 @@ def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
     
 
     if activityHills:
-        custom_description, activityDate, activity = getActivityDetails(activityID)
-        populateDescription(activityID, activityHills, custom_description = custom_description)
+        activity = StravaAPI.getActivityById(activityID)
+        populateDescription(activityID, activityHills, custom_description = activity.custom_description)
 
         hillIDs = [hill.id for hill in activityHills]
-        googleSheetsAPI.markAsDone(settings.google_script_ID, service, hillIDs, activityDate, activityID)
+        googleSheetsAPI.markAsDone(settings.google_script_ID, service, hillIDs, activity.activity_date_local, activity.id)
 
-        timeDiff = datetime.now(timezone.utc) - activityDate
+        timeDiff = datetime.now(timezone.utc) - activity.activity_date_utc
+        print(f'ActivityDate: {activity.activity_date_utc}')
+        print(f'Now: {datetime.now(timezone.utc)}')
+        print(f'TimeDiff: {timeDiff}')
+        print(f'Private: {activity.private}')
+        print(f'Less than 7 days: {timeDiff.days <= 7}')
         if not activity.private and timeDiff.days <= 7:
             notifications = config.getActivityNotifications(activity.id)
             mailingList = config.getMailingList()

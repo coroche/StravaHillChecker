@@ -3,11 +3,13 @@ import json
 from data import config
 from typing import List
 from dataclasses import dataclass
+from datetime import datetime
 
 @dataclass
 class Activity:
     id: int
     name: str
+    start_date: str
     start_date_local: str
     sport_type: str
     distance: float
@@ -18,6 +20,22 @@ class Activity:
     kudos_count: int
     description: str = ''
 
+    @property
+    def custom_description(self):
+        old_description = self.description
+        if old_description is None:
+            old_description = ""
+        if old_description != "" and 'VLs:' in old_description:
+            old_description = old_description[0:old_description.find('VLs:')]
+        return old_description
+    
+    @property
+    def activity_date_local(self):
+        return datetime.strptime(self.start_date_local, '%Y-%m-%dT%H:%M:%S%z')
+    
+    @property
+    def activity_date_utc(self):
+        return datetime.strptime(self.start_date, '%Y-%m-%dT%H:%M:%S%z')
 
 @dataclass
 class Athlete:  

@@ -50,7 +50,7 @@ def test_processActivity(mocker):
     mocked_ProcessActivity.return_value = (None, hills)
     
     mocked_GetActivity = mocker.patch('main_processActivity.getActivityById')
-    mocked_GetActivity.return_value = Activity(12345, 'Activity1', '2000-01-01T00:00:00Z', 'Hike', 1000, 100, 1000, 'everyone', False, 10)
+    mocked_GetActivity.return_value = Activity(12345, 'Activity1', '2000-01-01T00:00:00Z', '2000-01-01T00:00:00Z', 'Hike', 1000, 100, 1000, 'everyone', False, 10)
     
     with app.test_request_context('/processActivity'):  
         request = create_sample_request(method='POST', params='activityID=12345')
@@ -79,7 +79,7 @@ def test_processLatestActivity(mocker):
     mocked_ProcessActivity.return_value = (None, hills)
     
     mocked_GetActivity = mocker.patch('main_processLatestActivity.getActivities')
-    mocked_GetActivity.return_value = [Activity(12345, 'Activity1', '2000-01-01T00:00:00Z', 'Hike', 1000, 100, 1000, 'everyone', False, 10)]
+    mocked_GetActivity.return_value = [Activity(12345, 'Activity1', '2000-01-01T00:00:00Z', '2000-01-01T00:00:00Z', 'Hike', 1000, 100, 1000, 'everyone', False, 10)]
     
     mocked_WriteConfig = mocker.patch('main_processLatestActivity.config.write')
 
