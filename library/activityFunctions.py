@@ -101,7 +101,8 @@ def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
                 
                 #If the receipient has not already been notified
                 if not receipientNotifications:
-                    sendEmail(html_content, receipient.email, "Your kudos are required")
+                    unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={receipient.id}'
+                    sendEmail(html_content.replace('{UnsubscribeLink}', unsubscribeLink), receipient.email, "Your kudos are required")
                     config.writeNotification(activity.id, receipient.id)
 
         return True, activityHills
@@ -159,5 +160,6 @@ def bullyReceipients():
                     if receipient.strava_fullname in [kudoer.fullname for kudoer in kudoers]:
                         config.updateNotification(activity.id, receipient.id)
                     else:
-                        sendEmail(html_content, receipient.email, 'I am once again asking for you to...')
+                        unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={receipient.id}'
+                        sendEmail(html_content.replace('{UnsubscribeLink}', unsubscribeLink), receipient.email, 'I am once again asking for you to...')
         

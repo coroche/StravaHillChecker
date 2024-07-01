@@ -2,6 +2,7 @@ from flask import Flask, Request
 import main_stravaWebhook
 import main_processActivity
 import main_processLatestActivity
+import main_subscribe
 from werkzeug.test import EnvironBuilder
 from data import config
 from library.googleSheetsAPI import Hill
@@ -100,3 +101,16 @@ def test_processLatestActivity(mocker):
     assert mocked_ProcessActivity.call_args.args == (12345,)
     assert mocked_WriteConfig.call_count == 1
     assert mocked_WriteConfig.call_args.args == ('last_parsed_activity', 12345)
+
+def test_unsubscribe(mocker):
+    with app.test_request_context('/subscribe/unsubscribe'):
+        #Mock call to prevent activity processing
+        mocked_DeleteReceipient = mocker.patch('data.config.deleteReceipient')
+        
+        request = create_sample_request(method='GET', path = '/unsubscribe', params= 'subscriberID=123ABC')
+        response = main_subscribe.gcf_entry_point(request)
+
+        assert 'You have been unsubscribed and we are no longer friends.' in response.get_data(as_text=True)
+        assert response.status_code == 200
+        assert mocked_DeleteReceipient.call_count == 1
+        assert mocked_DeleteReceipient.call_args.args == ('123ABC',)

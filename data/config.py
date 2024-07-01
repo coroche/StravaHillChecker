@@ -153,15 +153,19 @@ def createReceipient(email: str, onStrava: bool, firstname: str = '', surname: s
         _, doc = collection_ref.add(receipient_dict)
         return True, None, doc.id
 
-def deleteReceipient(id: str) -> None:
+def deleteReceipient(id: str) -> bool:
     receipient_doc_ref = db.collection('mailing_list').document(id)
+
+    if not receipient_doc_ref.get().exists:
+        return False
+    
     notification_collection_ref = db.collection('notifications')
     notification_doc_refs = notification_collection_ref.where('receipient_id', '==', id).stream()
     for notification in notification_doc_refs:
         notification = notification_collection_ref.document(notification.id)
         notification.delete()
     receipient_doc_ref.delete()
-
+    return True
 
 def verifyReceipientEmail(id: str) -> None:
     doc_ref = db.collection('mailing_list').document(id)

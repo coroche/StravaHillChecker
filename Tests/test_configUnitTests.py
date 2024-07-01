@@ -92,6 +92,10 @@ def test_deleteReceipient():
     receipients = config.getReceipientByEmail('test@mail.com')
     assert not receipients
 
+def test_deleteNonExistantReceipient():
+    id = 'ABC123'
+    assert not config.deleteReceipient(id)
+
 def test_verifyReceipientEmail():
     _, _, id = config.createReceipient('test@mail.com', True, 'John', 'Doe')
     receipient = config.getReceipient(id)
