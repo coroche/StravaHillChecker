@@ -12,31 +12,31 @@ zip_file_name = 'zipped/stravaWebhook.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
 
 #Zip files for the processActivity cloud function
-files_to_zip = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main_processActivity.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/email_templates/Email.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
-archive_file_names = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/email_templates/Email.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
+files_to_zip = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main_processActivity.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/html_templates/Email.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
+archive_file_names = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/html_templates/Email.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
 zip_file_name = 'zipped/processActivity.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
 
 #Zip files for the processLatestActivity cloud function
-files_to_zip = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main_processLatestActivity.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/email_templates/Email.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
-archive_file_names = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/email_templates/Email.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
+files_to_zip = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main_processLatestActivity.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/html_templates/Email.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
+archive_file_names = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/html_templates/Email.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
 zip_file_name = 'zipped/processLatestActivity.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
 
 #Zip files for the sendReminders cloud function
-files_to_zip = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main_sendReminders.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/email_templates/FollowUpEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
-archive_file_names = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/email_templates/FollowUpEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
+files_to_zip = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main_sendReminders.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/html_templates/FollowUpEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
+archive_file_names = ['library/activityFunctions.py', 'data/config.py', 'library/googleSheetsAPI.py', 'main.py', 'requirements.txt', 'library/StravaAPI.py', 'data/firebaseServiceAccountKey.json', 'data/html_templates/FollowUpEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
 zip_file_name = 'zipped/sendReminders.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
 
 #Zip files for the subscribe cloud function
-files_to_zip = ['data/config.py', 'main_subscribe.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/email_templates/message.html', 'data/email_templates/subscribeForm.html', 'data/email_templates/verificationEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
-archive_file_names = ['data/config.py', 'main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/email_templates/message.html', 'data/email_templates/subscribeForm.html', 'data/email_templates/verificationEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
+files_to_zip = ['data/config.py', 'main_subscribe.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/message.html', 'data/html_templates/subscribeForm.html', 'data/html_templates/verificationEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
+archive_file_names = ['data/config.py', 'main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/message.html', 'data/html_templates/subscribeForm.html', 'data/html_templates/verificationEmail.html', 'library/smtp.py', 'data/__init__.py', 'library/__init__.py']
 zip_file_name = 'zipped/subscribe.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
 
 #Zip files for the getmap cloud function
-files_to_zip = ['data/config.py', 'main_getmap.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/email_templates/map.html', 'data/__init__.py', 'library/__init__.py', 'library/googleSheetsAPI.py']
-archive_file_names = ['data/config.py', 'main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/email_templates/map.html', 'data/__init__.py', 'library/__init__.py', 'library/googleSheetsAPI.py']
+files_to_zip = ['data/config.py', 'main_getmap.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/map.html', 'data/__init__.py', 'library/__init__.py', 'library/googleSheetsAPI.py']
+archive_file_names = ['data/config.py', 'main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/map.html', 'data/__init__.py', 'library/__init__.py', 'library/googleSheetsAPI.py']
 zip_file_name = 'zipped/getmap.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)

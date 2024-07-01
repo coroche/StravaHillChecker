@@ -1,5 +1,5 @@
 from flask import Flask
-from data.config import getEmailTemplate
+from data.config import getHTMLTemplate
 from library.googleSheetsAPI import getPeaks, login, buildService, Hill
 from data.config import getConfig
 import json
@@ -38,7 +38,7 @@ def serve_form():
     json_data = json.dumps(peaks_dict)
     js_list_content = f'"locations": {json_data},'
 
-    html = getEmailTemplate('map.html')
+    html = getHTMLTemplate('map.html')
     html = html\
         .replace('<!-- Add location list here -->', js_list_content)\
         .replace('{{APIToken}}', settings.google_maps_api_key)\

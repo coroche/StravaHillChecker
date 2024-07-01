@@ -56,8 +56,8 @@ def test_getReceipient():
     assert receipient.email == testData.ReceipientEmail
 
 
-def test_getEmailTemplate():
-    html = config.getEmailTemplate('Email.html')
+def test_getHTMLTemplate():
+    html = config.getHTMLTemplate('Email.html')
     assert html
 
 def test_createReceipient():

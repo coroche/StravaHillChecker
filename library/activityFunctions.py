@@ -93,7 +93,7 @@ def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
         if not activity.private and timeDiff.days <= 7:
             notifications = config.getActivityNotifications(activity.id)
             mailingList = config.getMailingList()
-            html_content = config.getEmailTemplate('Email.html')
+            html_content = config.getHTMLTemplate('Email.html')
             html_content = composeMail(html_content, activity, activityHills, allHills)
             
             for receipient in mailingList:
@@ -151,7 +151,7 @@ def bullyReceipients():
         activity = StravaAPI.getActivityById(activityID)
         if not activity.private:
             kudoers = StravaAPI.getActivityKudoers(activityID, activity.kudos_count)
-            html_content = config.getEmailTemplate('FollowUpEmail.html')
+            html_content = config.getHTMLTemplate('FollowUpEmail.html')
             html_content = composeFollowupEmail(html_content, activityID)
             for notification in notifications:
                 receipient = config.getReceipient(notification.receipient_id)

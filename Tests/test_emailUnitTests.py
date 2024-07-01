@@ -14,7 +14,7 @@ def test_sendEmail(mocker):
     mock_SMTP = mocker.MagicMock(name="library.smtp.smtplib.SMTP_SSL")
     mocker.patch("library.smtp.smtplib.SMTP_SSL", new=mock_SMTP)
 
-    html = config.getEmailTemplate('Email.html')
+    html = config.getHTMLTemplate('Email.html')
 
     hill1 = Hill(1, 'Hill1', 0.0, 0.0, True, 'Area1', True, 1000)
     hill2 = Hill(2, 'Hill2', 0.0, 0.0, True, 'Area2', True, 1000)
@@ -37,7 +37,7 @@ def test_sendFollowupEmail(mocker):
     mock_SMTP = mocker.MagicMock(name="library.smtp.smtplib.SMTP_SSL")
     mocker.patch("library.smtp.smtplib.SMTP_SSL", new=mock_SMTP)
 
-    html = config.getEmailTemplate('FollowUpEmail.html')
+    html = config.getHTMLTemplate('FollowUpEmail.html')
     html = composeFollowupEmail(html, testData.ActivityWithHills)
     sendEmail(html, testData.TestEmail, 'Test')
 

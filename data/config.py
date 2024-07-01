@@ -168,9 +168,9 @@ def verifyReceipientEmail(id: str) -> None:
     doc_ref.update({'email_verified': True})
 
 
-def getEmailTemplate(filename):
+def getHTMLTemplate(filename):
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, 'email_templates', filename)
+    file_path = os.path.join(current_dir, 'html_templates', filename)
 
     with open(file_path, 'r') as file:
         html_content = file.read()
