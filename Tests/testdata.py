@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import List
 import json
 
@@ -9,8 +9,8 @@ class TestData:
     Hills: List[str]
     ActivityID: int
     GCPProject: str
-    ReceipientID: str
-    ReceipientEmail: str
+    RecipientID: str
+    RecipientEmail: str
     TestEmail: str
     StravaName: str
 

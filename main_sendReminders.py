@@ -1,7 +1,7 @@
 import datetime
 import logging
 from string import Template
-from library.activityFunctions import bullyReceipients
+from library.activityFunctions import bullyRecipients
 
 def main(data, context):
 
@@ -10,7 +10,7 @@ def main(data, context):
         log_message = Template('Cloud Function was triggered on $time')
         logging.info(log_message.safe_substitute(time=current_time))
 
-        bullyReceipients()
+        bullyRecipients()
 
     except Exception as error:
         log_message = Template('$error').substitute(error=error)

@@ -1,5 +1,5 @@
 from data import config
-from Tests.testdata import getTestData, asdict
+from Tests.testdata import getTestData
 from library.activityFunctions import composeMail, composeFollowupEmail
 from library.googleSheetsAPI import Hill
 from library.smtp import sendEmail
@@ -20,10 +20,10 @@ def test_sendEmail(mocker):
     hill2 = Hill(2, 'Hill2', 0.0, 0.0, True, 'Area2', True, 1000)
     hill3 = Hill(3, 'Hill3', 0.0, 0.0, False, 'Area3', False, 1000)
 
-    activityhills = [hill1, hill2]
-    allhills = [hill1, hill2, hill3]
+    activityHills = [hill1, hill2]
+    allHills = [hill1, hill2, hill3]
     activity = getActivityById(testData.ActivityWithHills)
-    html = composeMail(html, activity, activityhills, allhills)
+    html = composeMail(html, activity, activityHills, allHills)
     sendEmail(html, testData.TestEmail, 'Test')
 
     assert mock_SMTP.return_value.__enter__.return_value.login.call_count == 1

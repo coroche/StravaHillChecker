@@ -105,12 +105,12 @@ def test_processLatestActivity(mocker):
 def test_unsubscribe(mocker):
     with app.test_request_context('/subscribe/unsubscribe'):
         #Mock call to prevent activity processing
-        mocked_DeleteReceipient = mocker.patch('data.config.deleteReceipient')
+        mocked_DeleteRecipient = mocker.patch('data.config.deleteRecipient')
         
         request = create_sample_request(method='GET', path = '/unsubscribe', params= 'subscriberID=123ABC')
         response = main_subscribe.gcf_entry_point(request)
 
         assert 'You have been unsubscribed and we are no longer friends.' in response.get_data(as_text=True)
         assert response.status_code == 200
-        assert mocked_DeleteReceipient.call_count == 1
-        assert mocked_DeleteReceipient.call_args.args == ('123ABC',)
+        assert mocked_DeleteRecipient.call_count == 1
+        assert mocked_DeleteRecipient.call_args.args == ('123ABC',)

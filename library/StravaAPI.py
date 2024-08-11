@@ -57,6 +57,7 @@ class Stream:
 @dataclass
 class Subscription:
     id: int
+    callback_url: str
 
 
 @dataclass
@@ -203,13 +204,6 @@ def updateActivityDescription(activityID: int, description: str) -> Activity:
 
 
 def getSubscriptions() -> List[Subscription]:
-    url = settings.base_url + "/push_subscriptions?client_id=" + str(settings.client_id) + "&client_secret=" + settings.client_secret
-
-    response = requests.request("GET", url)
-    subscription_list = [Subscription(**config.trimData(subscription_data, Subscription)) for subscription_data in json.loads(response.text)]
-    return subscription_list
-
-def getSubscriptions() -> dict:
     url = settings.base_url + "/push_subscriptions"
 
     params = { 
@@ -218,7 +212,8 @@ def getSubscriptions() -> dict:
     }
 
     response = requests.request("GET", url, params=params)
-    return json.loads(response.text)
+    subscription_list = [Subscription(**config.trimData(subscription_data, Subscription)) for subscription_data in json.loads(response.text)]
+    return subscription_list
 
 def createSubscription() -> dict:
     url = settings.base_url + "/push_subscriptions"

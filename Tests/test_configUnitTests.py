@@ -1,5 +1,6 @@
 from data import config
-from Tests.testdata import getTestData, asdict
+from Tests.testdata import getTestData
+from dataclasses import asdict
 
 testData = getTestData()
 
@@ -19,8 +20,8 @@ def test_writeParameter():
     assert config.get('test_parameter') == 'test'
 
 def test_getCredentials():
-    creds = config.getCredentials()
-    assert creds['installed']['project_id'] == testData.GCPProject
+    credentials = config.getCredentials()
+    assert credentials['installed']['project_id'] == testData.GCPProject
 
 def test_getToken():
     token = config.getToken()
@@ -35,9 +36,9 @@ def test_getActivityNotifications():
     assert activityNotifications
 
 def test_getUnkudosedNotifications():
-    unkudosednotifications = config.getUnkudosedNotifications()
-    assert unkudosednotifications
-    assert all([not notification.kudos for notification in unkudosednotifications])
+    unkudosedNotifications = config.getUnkudosedNotifications()
+    assert unkudosedNotifications
+    assert all([not notification.kudos for notification in unkudosedNotifications])
 
 def test_writeAndUpdateNotification():
     config.writeNotification(123, 'ABC123')
@@ -51,56 +52,56 @@ def test_writeAndUpdateNotification():
     assert not config.getNotification(123, 'ABC123')
 
 
-def test_getReceipient():
-    receipient = config.getReceipient(testData.ReceipientID)
-    assert receipient.email == testData.ReceipientEmail
+def test_getRecipient():
+    recipient = config.getRecipient(testData.RecipientID)
+    assert recipient.email == testData.RecipientEmail
 
 
 def test_getHTMLTemplate():
     html = config.getHTMLTemplate('Email.html')
     assert html
 
-def test_createReceipient():
-    success, message, id = config.createReceipient('test@mail.com', True, 'John', 'Doe')
+def test_createRecipient():
+    success, message, id = config.createRecipient('test@mail.com', True, 'John', 'Doe')
     assert success
-    receipient = config.getReceipient(id)
-    assert receipient.email == 'test@mail.com'
-    assert receipient.on_strava
-    assert receipient.strava_firstname == 'John'
-    assert receipient.strava_lastname == 'D.'
-    assert receipient.strava_fullname == 'JohnD.'
+    recipient = config.getRecipient(id)
+    assert recipient.email == 'test@mail.com'
+    assert recipient.on_strava
+    assert recipient.strava_firstname == 'John'
+    assert recipient.strava_lastname == 'D.'
+    assert recipient.strava_fullname == 'JohnD.'
 
-    config.deleteReceipient(id)
+    config.deleteRecipient(id)
 
-def test_createReceipient_emailexists():
-    success, _, id = config.createReceipient('test@mail.com', True, 'John', 'Doe')
+def test_createRecipient_emailExists():
+    success, _, id = config.createRecipient('test@mail.com', True, 'John', 'Doe')
     assert success
-    success, message, _ = config.createReceipient('test@mail.com', False)
+    success, message, _ = config.createRecipient('test@mail.com', False)
     assert not success
     assert message == 'Email address already subscribed'
-    receipients = config.getReceipientByEmail('test@mail.com')
-    assert len(receipients) == 1
+    recipients = config.getRecipientByEmail('test@mail.com')
+    assert len(recipients) == 1
 
-    config.deleteReceipient(id)
+    config.deleteRecipient(id)
 
-def test_deleteReceipient():
-    success, _, id = config.createReceipient('test@mail.com', False)
+def test_deleteRecipient():
+    success, _, id = config.createRecipient('test@mail.com', False)
     assert success
-    receipient = config.getReceipient(id)
-    assert receipient.email == 'test@mail.com'
-    config.deleteReceipient(id)
-    receipients = config.getReceipientByEmail('test@mail.com')
-    assert not receipients
+    recipient = config.getRecipient(id)
+    assert recipient.email == 'test@mail.com'
+    config.deleteRecipient(id)
+    recipients = config.getRecipientByEmail('test@mail.com')
+    assert not recipients
 
-def test_deleteNonExistantReceipient():
+def test_deleteNonExistentRecipient():
     id = 'ABC123'
-    assert not config.deleteReceipient(id)
+    assert not config.deleteRecipient(id)
 
-def test_verifyReceipientEmail():
-    _, _, id = config.createReceipient('test@mail.com', True, 'John', 'Doe')
-    receipient = config.getReceipient(id)
-    assert not receipient.email_verified
-    config.verifyReceipientEmail(id)
-    receipient = config.getReceipient(id)
-    assert receipient.email_verified
-    config.deleteReceipient(id)
+def test_verifyRecipientEmail():
+    _, _, id = config.createRecipient('test@mail.com', True, 'John', 'Doe')
+    recipient = config.getRecipient(id)
+    assert not recipient.email_verified
+    config.verifyRecipientEmail(id)
+    recipient = config.getRecipient(id)
+    assert recipient.email_verified
+    config.deleteRecipient(id)

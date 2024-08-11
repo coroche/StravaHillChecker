@@ -62,10 +62,10 @@ def test_processActivity(mocker):
     assert len(getUnkudosedNotifications()) == count
 
 
-def test_bullyReceipients(mocker):
+def test_bullyRecipients(mocker):
 
     # mock the smtplib.SMTP_SSL object
     mock_SMTP = mocker.MagicMock(name="library.smtp.smtplib.SMTP_SSL")
     mocker.patch("library.smtp.smtplib.SMTP_SSL", new=mock_SMTP)
 
-    activityFunctions.bullyReceipients()
+    activityFunctions.bullyRecipients()

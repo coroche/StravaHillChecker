@@ -14,19 +14,19 @@ def serve_form():
             firstname = request.form['firstName'].strip()
             surname = request.form['surname'].strip()
 
-            success, message, id = config.createReceipient(email, onStrava, firstname, surname)
+            success, message, id = config.createRecipient(email, onStrava, firstname, surname)
             if not success:
                 error=message
             else:
-                receipient = config.getReceipient(id)
+                recipient = config.getRecipient(id)
                 email_html = config.getHTMLTemplate('verificationEmail.html')
                 settings = config.getConfig()
-                verificationLink = f'{settings.google_functions_url}/subscribe/verify?id={receipient.id}&token={receipient.verification_token}'
+                verificationLink = f'{settings.google_functions_url}/subscribe/verify?id={recipient.id}&token={recipient.verification_token}'
                 email_html = email_html\
                     .replace('{VerificationLink}', verificationLink)\
                     .replace('{BackgroundImage}', settings.default_email_image)
                 
-                sendEmail(email_html, receipient.email, 'Verify your email')
+                sendEmail(email_html, recipient.email, 'Verify your email')
 
                 return render_template_string(getHTMLTemplate('message.html'), message = f'A verification link has been sent to {email}.')
         except Exception as e:
@@ -38,14 +38,14 @@ def serve_form():
 def verify_email():
     
     verification_token = request.args.get('token')
-    receipient_id = request.args.get('id')
+    recipient_id = request.args.get('id')
     message = 'Verification failed'
     code = 500
     
-    if verification_token and receipient_id:
-        receipient = config.getReceipient(receipient_id)
-        if receipient and verification_token == receipient.verification_token:
-            config.verifyReceipientEmail(receipient.id)
+    if verification_token and recipient_id:
+        recipient = config.getRecipient(recipient_id)
+        if recipient and verification_token == recipient.verification_token:
+            config.verifyRecipientEmail(recipient.id)
             message = 'Email verified'
             code = 200
   
@@ -53,7 +53,7 @@ def verify_email():
 
 def unsubscribe(subscriberID):
    
-    if config.deleteReceipient(subscriberID):
+    if config.deleteRecipient(subscriberID):
         message = 'You have been unsubscribed and we are no longer friends.'
         code = 200
     else:

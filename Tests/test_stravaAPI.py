@@ -13,7 +13,7 @@ def test_getLoggedInAthlete():
 def test_getActivities():
     activities = StravaAPI.getActivities(20, 1)
     assert activities
-    assert all([type(activity) == StravaAPI.Activity for activity in activities])
+    assert all([isinstance(activity, StravaAPI.Activity) for activity in activities])
     for activity in activities:
         for attr, value in activity.__dict__.items():
             assert value is not None, f"Attribute '{attr}' has no value in {activity}"
@@ -63,4 +63,4 @@ def test_updateActivityDescription():
 def test_getSubscriptions():
     subscriptions = StravaAPI.getSubscriptions()
     assert len(subscriptions) == 1
-    assert subscriptions[0]['callback_url'] == f'{settings.google_functions_url}/stravaWebhook'
+    assert subscriptions[0].callback_url == f'{settings.google_functions_url}/stravaWebhook'

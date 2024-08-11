@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timezone
 from data import config
-from typing import List
+from typing import List, Dict
 from library.smtp import sendEmail
 
 settings = config.getConfig()
@@ -96,14 +96,14 @@ def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
             html_content = config.getHTMLTemplate('Email.html')
             html_content = composeMail(html_content, activity, activityHills, allHills)
             
-            for receipient in mailingList:
-                receipientNotifications = [notification for notification in notifications if notification.receipient_id == receipient.id]
+            for recipient in mailingList:
+                recipientNotifications = [notification for notification in notifications if notification.recipient_id == recipient.id]
                 
-                #If the receipient has not already been notified
-                if not receipientNotifications:
-                    unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={receipient.id}'
-                    sendEmail(html_content.replace('{UnsubscribeLink}', unsubscribeLink), receipient.email, "Your kudos are required")
-                    config.writeNotification(activity.id, receipient.id)
+                #If the recipient has not already been notified
+                if not recipientNotifications:
+                    unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={recipient.id}'
+                    sendEmail(html_content.replace('{UnsubscribeLink}', unsubscribeLink), recipient.email, "Your kudos are required")
+                    config.writeNotification(activity.id, recipient.id)
 
         return True, activityHills
     else:
@@ -140,9 +140,9 @@ def composeFollowupEmail(html_content: str, activityID: int) -> str:
     return html_content
 
 
-def bullyReceipients():
+def bullyRecipients():
     notifications = config.getUnkudosedNotifications()
-    grouped_by_activity = {}
+    grouped_by_activity: Dict[int, List[config.Notification]] = {}
     for notification in notifications:
         if notification.activity_id not in grouped_by_activity:
             grouped_by_activity[notification.activity_id] = []
@@ -155,11 +155,11 @@ def bullyReceipients():
             html_content = config.getHTMLTemplate('FollowUpEmail.html')
             html_content = composeFollowupEmail(html_content, activityID)
             for notification in notifications:
-                receipient = config.getReceipient(notification.receipient_id)
-                if receipient.on_strava:
-                    if receipient.strava_fullname in [kudoer.fullname for kudoer in kudoers]:
-                        config.updateNotification(activity.id, receipient.id)
+                recipient = config.getRecipient(notification.recipient_id)
+                if recipient.on_strava:
+                    if recipient.strava_fullname in [kudoer.fullname for kudoer in kudoers]:
+                        config.updateNotification(activity.id, recipient.id)
                     else:
-                        unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={receipient.id}'
-                        sendEmail(html_content.replace('{UnsubscribeLink}', unsubscribeLink), receipient.email, 'I am once again asking for you to...')
+                        unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={recipient.id}'
+                        sendEmail(html_content.replace('{UnsubscribeLink}', unsubscribeLink), recipient.email, 'I am once again asking for you to...')
         

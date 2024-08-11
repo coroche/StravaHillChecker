@@ -5,11 +5,12 @@ from dataclasses import dataclass, asdict
 from typing import List
 import os
 import uuid
+from google.cloud.firestore_v1.client import Client
 
 
 cred = credentials.Certificate('data/firebaseServiceAccountKey.json')
 firebase_admin.initialize_app(cred)
-db = firestore.client()
+db: Client = firestore.client()
 config_doc_ref = db.collection('config').document('settings')
 credentials_doc_ref = db.collection('config').document('credentials')
 token_doc_ref = db.collection('config').document('token')
@@ -37,7 +38,7 @@ class Config:
     test_parameter: str = ''
 
 @dataclass
-class Receipient:
+class Recipient:
     id: str
     email: str
     on_strava: bool
@@ -53,8 +54,9 @@ class Receipient:
 @dataclass
 class Notification:
     activity_id: int
-    receipient_id: str
+    recipient_id: str
     kudos: bool = False
+
 
 #Remove unwanted dictionary keys before constructing class instance
 def trimData(json_data: dict, dClass: type) -> dict:
@@ -91,13 +93,13 @@ def writeToken(token_data: str):
     token_doc_ref.update(token_data)
     
 
-def getMailingList() -> List[Receipient]:   
+def getMailingList() -> List[Recipient]:   
     mailingList = db.collection('mailing_list').where('email_verified', '==', True).get()
-    return [Receipient(id = doc.id, **doc.to_dict()) for doc in mailingList]
+    return [Recipient(id = doc.id, **doc.to_dict()) for doc in mailingList]
 
 
-def getNotification(activityID: int, receipientID: str) -> Notification:   
-    activityNotifications = db.collection('notifications').where('activity_id', '==', activityID).where('receipient_id', '==', receipientID).get()
+def getNotification(activityID: int, recipientID: str) -> Notification:   
+    activityNotifications = db.collection('notifications').where('activity_id', '==', activityID).where('recipient_id', '==', recipientID).get()
     if activityNotifications:
         return [Notification(**doc.to_dict()) for doc in activityNotifications][0]
     else:
@@ -113,61 +115,61 @@ def getUnkudosedNotifications() -> List[Notification]:
     return [Notification(**doc.to_dict()) for doc in activityNotifications]
 
 
-def writeNotification(activityID: int, receipientID: str):   
-    notification = Notification(activityID, receipientID)
+def writeNotification(activityID: int, recipientID: str):   
+    notification = Notification(activityID, recipientID)
     collection_ref = db.collection('notifications')
-    collection_ref.document(f"{activityID}_{receipientID}").set(asdict(notification))
+    collection_ref.document(f"{activityID}_{recipientID}").set(asdict(notification))
 
-def deleteNotification(activityID: int, receipientID: str):
-    doc_ref = db.collection('notifications').document(f"{activityID}_{receipientID}")
+def deleteNotification(activityID: int, recipientID: str):
+    doc_ref = db.collection('notifications').document(f"{activityID}_{recipientID}")
     doc_ref.delete()
 
-def updateNotification(activityID: int, receipientID: str):  
-    doc_ref = db.collection('notifications').document(f"{activityID}_{receipientID}")
+def updateNotification(activityID: int, recipientID: str):  
+    doc_ref = db.collection('notifications').document(f"{activityID}_{recipientID}")
     doc_ref.update({'kudos': True})
 
 
-def getReceipient(id: str) -> Receipient:
+def getRecipient(id: str) -> Recipient:
     data = db.collection('mailing_list').document(id).get().to_dict()
     if data:
-        return Receipient(id = id, **data)
+        return Recipient(id = id, **data)
     else:
         return None
 
-def getReceipientByEmail(email: str) -> List[Receipient]:
+def getRecipientByEmail(email: str) -> List[Recipient]:
     data = db.collection('mailing_list').where('email', '==', email).get()
-    return [Receipient(id = doc.id, **doc.to_dict()) for doc in data]
+    return [Recipient(id = doc.id, **doc.to_dict()) for doc in data]
 
-def createReceipient(email: str, onStrava: bool, firstname: str = '', surname: str = '') -> tuple[bool, str, str]:
-    if getReceipientByEmail(email):
+def createRecipient(email: str, onStrava: bool, firstname: str = '', surname: str = '') -> tuple[bool, str, str]:
+    if getRecipientByEmail(email):
         return False, 'Email address already subscribed', None
     elif onStrava and (not firstname or not surname):
         return False, 'Name must be provided if on strava', None
     else:
         if surname:
             surname = f'{surname[0]}.'
-        receipient = Receipient('', email, onStrava, firstname, surname)
-        receipient_dict = asdict(receipient)
-        receipient_dict.pop('id')
+        recipient = Recipient('', email, onStrava, firstname, surname)
+        recipient_dict = asdict(recipient)
+        recipient_dict.pop('id')
         collection_ref = db.collection('mailing_list')
-        _, doc = collection_ref.add(receipient_dict)
+        _, doc = collection_ref.add(recipient_dict)
         return True, None, doc.id
 
-def deleteReceipient(id: str) -> bool:
-    receipient_doc_ref = db.collection('mailing_list').document(id)
+def deleteRecipient(id: str) -> bool:
+    recipient_doc_ref = db.collection('mailing_list').document(id)
 
-    if not receipient_doc_ref.get().exists:
+    if not recipient_doc_ref.get().exists:
         return False
     
     notification_collection_ref = db.collection('notifications')
-    notification_doc_refs = notification_collection_ref.where('receipient_id', '==', id).stream()
+    notification_doc_refs = notification_collection_ref.where('recipient_id', '==', id).stream()
     for notification in notification_doc_refs:
         notification = notification_collection_ref.document(notification.id)
         notification.delete()
-    receipient_doc_ref.delete()
+    recipient_doc_ref.delete()
     return True
 
-def verifyReceipientEmail(id: str) -> None:
+def verifyRecipientEmail(id: str) -> None:
     doc_ref = db.collection('mailing_list').document(id)
     doc_ref.update({'email_verified': True})
 
@@ -199,6 +201,18 @@ def removeFieldFromDocs(collection_name: str, field_to_delete: str) -> None:
         if field_to_delete in doc_dict:
             doc.reference.update({
                 field_to_delete: firestore.DELETE_FIELD
-        })
-    
+            })
+
+
+def renameField(collection_name: str, old_key_name: str, new_key_name: str) -> None:
+    docs = db.collection(collection_name).stream()
+
+    for doc in docs:
+        doc_dict = doc.to_dict()
+        
+        if old_key_name in doc_dict:
+            doc.reference.update({
+                new_key_name: doc_dict[old_key_name],
+                old_key_name: firestore.DELETE_FIELD
+            })
 
