@@ -18,13 +18,12 @@ def isHillBagged(hill: googleSheetsAPI.Hill, points: np.ndarray, n: int) -> bool
     return matches.any()
 
 
-def checkActivityForHills(activityID: int, SCRIPT_ID: str, service: googleSheetsAPI.Resource, plot: bool = False, n: int = 1) -> tuple[List[googleSheetsAPI.Hill], List[googleSheetsAPI.Hill]]:    
+def checkActivityForHills(activityID: int, allHills: List[googleSheetsAPI.Hill], plot: bool = False, n: int = 1) -> tuple[List[googleSheetsAPI.Hill], List[googleSheetsAPI.Hill]]:    
     stream = StravaAPI.getActivityStreams(activityID, ['latlng'])[0]
     streamLatLng = np.array(stream.data)
     lat = streamLatLng[:,0][0::n]
     lng = streamLatLng[:,1][0::n]
 
-    allHills = googleSheetsAPI.getPeaks(SCRIPT_ID, service)
     hills = [hill for hill in allHills if isHillBagged(hill, np.array([lat, lng]), n)]
 
     if plot:
@@ -50,7 +49,7 @@ def checkActivityForHills(activityID: int, SCRIPT_ID: str, service: googleSheets
         ax.set_aspect('equal', adjustable='box')
         plt.show()
 
-    return hills, allHills
+    return hills
 
 
 
@@ -70,55 +69,61 @@ def updateAllDescriptions():
         processActivity(activityID)
 
 
-def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
-    creds = googleSheetsAPI.login()
-    service = googleSheetsAPI.buildService(creds)
+def getHillList(service: googleSheetsAPI.Resource) -> List[googleSheetsAPI.Hill]:
+    scriptID = settings.google_script_ID
+    hillList = googleSheetsAPI.getPeaks(scriptID, service)
+    return hillList
 
-    activityHills, allHills = checkActivityForHills(activityID, settings.google_script_ID, service, plot=False, n=1)
+
+def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:  
+    googleService = googleSheetsAPI.getService()
+    allHills = getHillList(googleService)
+    activity = StravaAPI.getActivityById(activityID)
+
+    activity.hills = checkActivityForHills(activityID, allHills, plot=False, n=1)
     
 
-    if activityHills:
-        activity = StravaAPI.getActivityById(activityID)
-        populateDescription(activityID, activityHills, custom_description = activity.custom_description)
+    if not activity.hills:
+        return False, activity.hills
+    
+    
+    populateDescription(activityID, activity.hills, custom_description = activity.custom_description)
 
-        hillIDs = [hill.id for hill in activityHills]
-        googleSheetsAPI.markAsDone(settings.google_script_ID, service, hillIDs, activity.activity_date_local, activity.id)
+    hillIDs = [hill.id for hill in activity.hills]
+    googleSheetsAPI.markAsDone(settings.google_script_ID, googleService, hillIDs, activity.activity_date_local, activityID)
 
-        timeDiff = datetime.now(timezone.utc) - activity.activity_date_utc
-        print(f'ActivityDate: {activity.activity_date_utc}')
-        print(f'Now: {datetime.now(timezone.utc)}')
-        print(f'TimeDiff: {timeDiff}')
-        print(f'Private: {activity.private}')
-        print(f'Less than 7 days: {timeDiff.days <= 7}')
-        if not activity.private and timeDiff.days <= 7:
-            notifications = config.getActivityNotifications(activity.id)
-            mailingList = config.getMailingList()
-            html_content = config.getHTMLTemplate('Email.html')
-            html_content = composeMail(html_content, activity, activityHills, allHills)
-            
-            for recipient in mailingList:
-                recipientNotifications = [notification for notification in notifications if notification.recipient_id == recipient.id]
-                
-                #If the recipient has not already been notified
-                if not recipientNotifications:
-                    unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={recipient.id}'
-                    sendEmail(html_content.replace('{UnsubscribeLink}', unsubscribeLink), recipient.email, "Your kudos are required")
-                    config.writeNotification(activity.id, recipient.id)
+    timeDiff = datetime.now(timezone.utc) - activity.activity_date_utc
+    
+    if not activity.private and timeDiff.days <= 7:
+        sendActivityNotificationEmails(activity, allHills)
 
-        return True, activityHills
-    else:
-        return False, activityHills
+    return True, activity.hills
+
+def sendActivityNotificationEmails(activity: StravaAPI.Activity, allHills: List[googleSheetsAPI.Hill]):   
+    notifications = config.getActivityNotifications(activity.id)
+    mailingList = config.getMailingList()
+    html_content = config.getHTMLTemplate('Email.html')
+    html_content = composeMail(html_content, activity, allHills)
+    
+    for recipient in mailingList:
+        
+        #If the recipient has already been notified, skip
+        if [notification for notification in notifications if notification.recipient_id == recipient.id]:
+            continue
+        
+        unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={recipient.id}'
+        sendEmail(html_content.replace('{UnsubscribeLink}', unsubscribeLink), recipient.email, "Your kudos are required")
+        config.writeNotification(activity.id, recipient.id)
 
    
-def composeMail(html_content: str, activity: StravaAPI.Activity, activityHills: List[googleSheetsAPI.Hill], allHills: List[googleSheetsAPI.Hill]) -> str:
-    
+def composeMail(html_content: str, activity: StravaAPI.Activity, allHills: List[googleSheetsAPI.Hill]) -> str:   
     backgroundImg = StravaAPI.getPrimaryActivityPhoto(activity.id)
 
     done = len([hill for hill in allHills if hill.done])
     togo = len([hill for hill in allHills if not hill.done])
     m, _ = divmod(activity.moving_time, 60)
     h, m = divmod(m, 60)
-    html_hillNames = "".join(["<li style=""margin-bottom: 0; text-align: left;"">" + hill.name + "</li>" for hill in activityHills])
+    html_hillNames = "".join(["<li style=""margin-bottom: 0; text-align: left;"">" + hill.name + "</li>" for hill in activity.hills])
 
     html_content = html_content\
         .replace("{Done}", f"{done}")\
@@ -132,8 +137,7 @@ def composeMail(html_content: str, activity: StravaAPI.Activity, activityHills: 
     return html_content
 
 
-def composeFollowupEmail(html_content: str, activityID: int) -> str:
-    
+def composeFollowupEmail(html_content: str, activityID: int) -> str:   
     html_content = html_content\
         .replace("{StravaLink}", f"https://www.strava.com/activities/{activityID}")
     

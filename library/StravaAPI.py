@@ -2,8 +2,9 @@ import requests
 import json
 from data import config
 from typing import List
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+from library.googleSheetsAPI import Hill
 
 @dataclass
 class Activity:
@@ -19,6 +20,7 @@ class Activity:
     private: bool
     kudos_count: int
     description: str = ''
+    hills: List[Hill] = field(default_factory=list)
 
     @property
     def custom_description(self):

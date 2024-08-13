@@ -76,4 +76,8 @@ def markAsDone(SCRIPT_ID: str, service: Resource, peakIDs: List[int], dateClimbe
     except errors.HttpError as error:
         print(error.content)
 
+def getService() -> Resource:
+    creds = login()
+    service = buildService(creds)
+    return service
 

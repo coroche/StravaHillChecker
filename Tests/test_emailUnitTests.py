@@ -20,10 +20,10 @@ def test_sendEmail(mocker):
     hill2 = Hill(2, 'Hill2', 0.0, 0.0, True, 'Area2', True, 1000)
     hill3 = Hill(3, 'Hill3', 0.0, 0.0, False, 'Area3', False, 1000)
 
-    activityHills = [hill1, hill2]
     allHills = [hill1, hill2, hill3]
     activity = getActivityById(testData.ActivityWithHills)
-    html = composeMail(html, activity, activityHills, allHills)
+    activity.hills = [hill1, hill2]
+    html = composeMail(html, activity, allHills)
     sendEmail(html, testData.TestEmail, 'Test')
 
     assert mock_SMTP.return_value.__enter__.return_value.login.call_count == 1
