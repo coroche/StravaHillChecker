@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timezone
 from data import config
 from typing import List, Dict
-from library.smtp import sendEmail
+from library.smtp import sendEmails, Email
+
 
 settings = config.getConfig()
 
@@ -75,7 +76,7 @@ def getHillList(service: googleSheetsAPI.Resource) -> List[googleSheetsAPI.Hill]
     return hillList
 
 
-def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:  
+def processActivity(activityID: int, ignoreTimeDiff: bool = False) -> tuple[bool, List[googleSheetsAPI.Hill]]:  
     googleService = googleSheetsAPI.getService()
     allHills = getHillList(googleService)
     activity = StravaAPI.getActivityById(activityID)
@@ -94,7 +95,7 @@ def processActivity(activityID: int) -> tuple[bool, List[googleSheetsAPI.Hill]]:
 
     timeDiff = datetime.now(timezone.utc) - activity.activity_date_utc
     
-    if not activity.private and timeDiff.days <= 7:
+    if not activity.private and (timeDiff.days <= 7 or ignoreTimeDiff):
         sendActivityNotificationEmails(activity, allHills)
 
     return True, activity.hills
@@ -105,6 +106,7 @@ def sendActivityNotificationEmails(activity: StravaAPI.Activity, allHills: List[
     html_content = config.getHTMLTemplate('Email.html')
     html_content = composeMail(html_content, activity, allHills)
     
+    emails: List[Email] = []
     for recipient in mailingList:
         
         #If the recipient has already been notified, skip
@@ -112,8 +114,10 @@ def sendActivityNotificationEmails(activity: StravaAPI.Activity, allHills: List[
             continue
         
         unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={recipient.id}'
-        sendEmail(html_content.replace('{UnsubscribeLink}', unsubscribeLink), recipient.email, "Your kudos are required")
+        emails.append(Email(html = html_content.replace('{UnsubscribeLink}', unsubscribeLink), address = recipient.email, subject = "Your kudos are required"))
         config.writeNotification(activity.id, recipient.id)
+    sendEmails(emails)
+
 
    
 def composeMail(html_content: str, activity: StravaAPI.Activity, allHills: List[googleSheetsAPI.Hill]) -> str:   
@@ -147,6 +151,7 @@ def composeFollowupEmail(html_content: str, activityID: int) -> str:
 def bullyRecipients():
     notifications = config.getUnkudosedNotifications()
     grouped_by_activity: Dict[int, List[config.Notification]] = {}
+    emails: List[Email] = []
     for notification in notifications:
         if notification.activity_id not in grouped_by_activity:
             grouped_by_activity[notification.activity_id] = []
@@ -154,6 +159,7 @@ def bullyRecipients():
     
     for activityID, notifications in grouped_by_activity.items():
         activity = StravaAPI.getActivityById(activityID)
+        timeDiff = datetime.now(timezone.utc) - activity.activity_date_utc
         if not activity.private:
             kudoers = StravaAPI.getActivityKudoers(activityID, activity.kudos_count)
             html_content = config.getHTMLTemplate('FollowUpEmail.html')
@@ -161,9 +167,10 @@ def bullyRecipients():
             for notification in notifications:
                 recipient = config.getRecipient(notification.recipient_id)
                 if recipient.on_strava:
-                    if recipient.strava_fullname in [kudoer.fullname for kudoer in kudoers]:
+                    if recipient.strava_fullname in [kudoer.fullname for kudoer in kudoers] or timeDiff.days > 7:
                         config.updateNotification(activity.id, recipient.id)
                     else:
                         unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={recipient.id}'
-                        sendEmail(html_content.replace('{UnsubscribeLink}', unsubscribeLink), recipient.email, 'I am once again asking for you to...')
+                        emails.append(Email(html= html_content.replace('{UnsubscribeLink}', unsubscribeLink), address= recipient.email, subject= 'I am once again asking for you to...'))
+    sendEmails(emails)                        
         

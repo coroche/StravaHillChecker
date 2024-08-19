@@ -3,23 +3,32 @@ import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from data import config
+from dataclasses import dataclass
+from typing import List
 
+@dataclass
+class Email:
+	html: str
+	address: str
+	subject: str
 
 
 settings = config.getConfig()
 
-def sendEmail(html, receiver_email, subject):
-    message = MIMEMultipart()
-    message["Subject"] = subject
-    message["From"] = settings.sender_email
-    message["To"] = receiver_email
-    message.attach(MIMEText(html, "html"))
-    context = ssl.create_default_context()
-    with smtplib.SMTP_SSL(settings.smtp_server, settings.smtp_port, context=context) as server:
-        server.login(settings.sender_email, settings.smtp_password)
-        server.sendmail(settings.sender_email, receiver_email, message.as_string())
+def sendEmails(emails: List[Email]) -> None:
+	context = ssl.create_default_context()
+	with smtplib.SMTP_SSL(settings.smtp_server, settings.smtp_port, context=context) as server:
+		server.login(settings.sender_email, settings.smtp_password)
+		
+		for email in emails:
+			message = MIMEMultipart()
+			message["Subject"] = email.subject
+			message["From"] = settings.sender_email
+			message["To"] = email.address
+			message.attach(MIMEText(email.html, "html"))
+			server.sendmail(settings.sender_email, email.address, message.as_string())
 
-def sendErrorEmail(e):
+def sendErrorEmail(e: Exception) -> None:
     html = """\
 <html>
   <body>

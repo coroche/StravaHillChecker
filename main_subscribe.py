@@ -1,7 +1,7 @@
 from flask import request, render_template_string, Request, Response
 from data.config import getHTMLTemplate
 from data import config
-from library.smtp import sendEmail
+from library.smtp import sendEmails, Email
 
 
 def serve_form():
@@ -26,7 +26,7 @@ def serve_form():
                     .replace('{VerificationLink}', verificationLink)\
                     .replace('{BackgroundImage}', settings.default_email_image)
                 
-                sendEmail(email_html, recipient.email, 'Verify your email')
+                sendEmails([Email(html= email_html, address= recipient.email, subject= 'Verify your email')])
 
                 return render_template_string(getHTMLTemplate('message.html'), message = f'A verification link has been sent to {email}.')
         except Exception as e:

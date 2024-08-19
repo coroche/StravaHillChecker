@@ -6,6 +6,7 @@ from typing import List
 import os
 import uuid
 from google.cloud.firestore_v1.client import Client
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 
 cred = credentials.Certificate('data/firebaseServiceAccountKey.json')
@@ -94,24 +95,24 @@ def writeToken(token_data: str):
     
 
 def getMailingList() -> List[Recipient]:   
-    mailingList = db.collection('mailing_list').where('email_verified', '==', True).get()
+    mailingList = db.collection('mailing_list').where(filter=FieldFilter('email_verified', '==', True)).get()
     return [Recipient(id = doc.id, **doc.to_dict()) for doc in mailingList]
 
 
 def getNotification(activityID: int, recipientID: str) -> Notification:   
-    activityNotifications = db.collection('notifications').where('activity_id', '==', activityID).where('recipient_id', '==', recipientID).get()
+    activityNotifications = db.collection('notifications').where(filter=FieldFilter('activity_id', '==', activityID)).where(filter=FieldFilter('recipient_id', '==', recipientID)).get()
     if activityNotifications:
         return [Notification(**doc.to_dict()) for doc in activityNotifications][0]
     else:
         return None
 
 def getActivityNotifications(activityID: int) -> List[Notification]:   
-    activityNotifications = db.collection('notifications').where('activity_id', '==', activityID).get()
+    activityNotifications = db.collection('notifications').where(filter=FieldFilter('activity_id', '==', activityID)).get()
     return [Notification(**doc.to_dict()) for doc in activityNotifications]
 
 
 def getUnkudosedNotifications() -> List[Notification]:   
-    activityNotifications = db.collection('notifications').where('kudos', '==', False).get()
+    activityNotifications = db.collection('notifications').where(filter=FieldFilter('kudos', '==', False)).get()
     return [Notification(**doc.to_dict()) for doc in activityNotifications]
 
 
@@ -137,7 +138,7 @@ def getRecipient(id: str) -> Recipient:
         return None
 
 def getRecipientByEmail(email: str) -> List[Recipient]:
-    data = db.collection('mailing_list').where('email', '==', email).get()
+    data = db.collection('mailing_list').where(filter=FieldFilter('email', '==', email)).get()
     return [Recipient(id = doc.id, **doc.to_dict()) for doc in data]
 
 def createRecipient(email: str, onStrava: bool, firstname: str = '', surname: str = '') -> tuple[bool, str, str]:
@@ -162,7 +163,7 @@ def deleteRecipient(id: str) -> bool:
         return False
     
     notification_collection_ref = db.collection('notifications')
-    notification_doc_refs = notification_collection_ref.where('recipient_id', '==', id).stream()
+    notification_doc_refs = notification_collection_ref.where(filter=FieldFilter('recipient_id', '==', id)).stream()
     for notification in notification_doc_refs:
         notification = notification_collection_ref.document(notification.id)
         notification.delete()
