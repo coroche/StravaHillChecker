@@ -28,7 +28,7 @@ class Activity:
         if old_description is None:
             old_description = ""
         if old_description != "" and 'VLs:' in old_description:
-            old_description = old_description[0:old_description.find('VLs:')]
+            old_description = old_description[0:old_description.find('VLs:')].rstrip()
         return old_description
     
     @property

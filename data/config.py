@@ -36,6 +36,7 @@ class Config:
     default_email_image: str
     google_maps_api_key: str
     map_icon_bucket: str
+    dashboard_url: str
     test_parameter: str = ''
 
 @dataclass

@@ -55,9 +55,8 @@ def checkActivityForHills(activityID: int, allHills: List[googleSheetsAPI.Hill],
 
 
 def populateDescription(activityID: int, hills: List[googleSheetsAPI.Hill], custom_description: str = ""):
-        hillNames = ['✅ ' + hill.name for hill in hills]
-        description = '\n'.join(hillNames)
-        description = custom_description + 'VLs:\n' + description
+        hillNames = '\n'.join(['✅ ' + hill.name for hill in hills])
+        description = '\n'.join([custom_description, 'VLs:', hillNames, settings.dashboard_url])
         
         StravaAPI.updateActivityDescription(activityID, description)
 
