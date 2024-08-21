@@ -65,7 +65,7 @@ def trimData(json_data: dict, dClass: type) -> dict:
     return {key: value for key, value in json_data.items() if key in dClass.__annotations__}
 
 def getConfig() -> Config:   
-    config_data = config_doc_ref.get().to_dict()  
+    config_data = trimData(config_doc_ref.get().to_dict(), Config)
     config = Config(**config_data)
     return config
 
