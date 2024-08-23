@@ -5,7 +5,9 @@ from typing import List
 from dataclasses import dataclass, field
 from datetime import datetime
 from library.googleSheetsAPI import Hill
+from utils.decorators import trim
 
+@trim
 @dataclass
 class Activity:
     id: int
@@ -39,6 +41,7 @@ class Activity:
     def activity_date_utc(self):
         return datetime.strptime(self.start_date, '%Y-%m-%dT%H:%M:%S%z')
 
+@trim
 @dataclass
 class Athlete:  
     firstname: str
@@ -50,23 +53,27 @@ class Athlete:
         return self.firstname + self.lastname
 
 
+@trim
 @dataclass
 class Stream:
     type: str
     data: List[List[float]]
 
 
+@trim
 @dataclass
 class Subscription:
     id: int
     callback_url: str
 
 
+@trim
 @dataclass
 class TokenResponse:
     access_token: str
     refresh_token: str
 
+@trim
 @dataclass
 class ActivityPhoto:
     activity_id: str
@@ -101,7 +108,7 @@ def refreshTokens():
     }
 
     response = requests.request("POST", url, data=payload)
-    token_data = config.trimData(json.loads(response.text), TokenResponse)
+    token_data = json.loads(response.text)
     tokens = TokenResponse(**token_data)
     
     settings.access_token = tokens.access_token
@@ -116,7 +123,7 @@ def getLoggedInAthlete() -> Athlete:
 
     response = makeRequest("GET", url, headers=headers)
     athlete_data: dict = json.loads(response.text)
-    athlete_data = config.trimData(athlete_data, Athlete)
+    athlete_data = athlete_data
     return Athlete(**athlete_data)
 
 
@@ -129,7 +136,7 @@ def getActivities(per_page: int, page: int) -> List[Activity]:
     }
 
     response = makeRequest("GET", url, headers=headers, params=params)
-    activity_list: List[Activity] = [Activity(**config.trimData(activity_data, Activity)) for activity_data in json.loads(response.text)]
+    activity_list: List[Activity] = [Activity(**activity_data) for activity_data in json.loads(response.text)]
     return activity_list
 
 
@@ -141,7 +148,6 @@ def getActivityById(activityID: int) -> Activity:
     if response.status_code == 404:
         return Activity(0, '','','','')
     activity_json: dict = json.loads(response.text)
-    activity_json = config.trimData(activity_json, Activity)
     activity = Activity(**activity_json)
     return activity
 
@@ -155,7 +161,7 @@ def getActivityStreams(activityID: int, streamTypes: List[str]) -> List[Stream]:
 
     response = makeRequest("GET", url, headers=headers, params=params)  
     
-    streams_list = [Stream(**config.trimData(stream_data, Stream)) for stream_data in json.loads(response.text)]
+    streams_list = [Stream(**stream_data) for stream_data in json.loads(response.text)]
     streams_list = [stream for stream in streams_list if stream.type in streamTypes]
     return streams_list
 
@@ -169,7 +175,7 @@ def getPrimaryActivityPhoto(activityID: int) -> str:
     if response.status_code == 404:
         return settings.default_email_image
     
-    photo_list = [ActivityPhoto(**config.trimData(photo_data, ActivityPhoto)) for photo_data in json.loads(response.text)]
+    photo_list = [ActivityPhoto(**photo_data) for photo_data in json.loads(response.text)]
     primary_photo = [photo for photo in photo_list if photo.default_photo]
     if len(primary_photo) == 0:
         return settings.default_email_image
@@ -188,7 +194,7 @@ def getActivityKudoers(activityID: int, kudos_count: int) -> List[Athlete]:
     params = {'per_page': kudos_count}
 
     response = makeRequest("GET", url, headers=headers, params=params)    
-    kudos_list = [Athlete(**config.trimData(kudos_data, Athlete)) for kudos_data in json.loads(response.text)]  
+    kudos_list = [Athlete(**kudos_data) for kudos_data in json.loads(response.text)]  
     return kudos_list
 
 
@@ -200,7 +206,7 @@ def updateActivityDescription(activityID: int, description: str) -> Activity:
     response = makeRequest("PUT", url, headers=headers, data=payload)
 
     activity_json: dict = json.loads(response.text)
-    activity_json = config.trimData(activity_json, Activity)
+    activity_json = activity_json
     activity = Activity(**activity_json)
     return activity
 
@@ -214,7 +220,7 @@ def getSubscriptions() -> List[Subscription]:
     }
 
     response = requests.request("GET", url, params=params)
-    subscription_list = [Subscription(**config.trimData(subscription_data, Subscription)) for subscription_data in json.loads(response.text)]
+    subscription_list = [Subscription(**subscription_data) for subscription_data in json.loads(response.text)]
     return subscription_list
 
 def createSubscription() -> dict:

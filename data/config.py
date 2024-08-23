@@ -7,6 +7,7 @@ import os
 import uuid
 from google.cloud.firestore_v1.client import Client
 from google.cloud.firestore_v1.base_query import FieldFilter
+from utils.decorators import trim
 
 
 cred = credentials.Certificate('data/firebaseServiceAccountKey.json')
@@ -16,6 +17,7 @@ config_doc_ref = db.collection('config').document('settings')
 credentials_doc_ref = db.collection('config').document('credentials')
 token_doc_ref = db.collection('config').document('token')
 
+@trim
 @dataclass
 class Config:
     base_url: str
@@ -39,6 +41,7 @@ class Config:
     dashboard_url: str
     test_parameter: str = ''
 
+@trim
 @dataclass
 class Recipient:
     id: str
@@ -53,6 +56,7 @@ class Recipient:
     def strava_fullname(self) -> str:
         return self.strava_firstname + self.strava_lastname
     
+@trim
 @dataclass
 class Notification:
     activity_id: int
@@ -60,12 +64,8 @@ class Notification:
     kudos: bool = False
 
 
-#Remove unwanted dictionary keys before constructing class instance
-def trimData(json_data: dict, dClass: type) -> dict:
-    return {key: value for key, value in json_data.items() if key in dClass.__annotations__}
-
 def getConfig() -> Config:   
-    config_data = trimData(config_doc_ref.get().to_dict(), Config)
+    config_data = config_doc_ref.get().to_dict()
     config = Config(**config_data)
     return config
 
@@ -118,7 +118,7 @@ def getUnkudosedNotifications() -> List[Notification]:
 
 
 def writeNotification(activityID: int, recipientID: str):   
-    notification = Notification(activityID, recipientID)
+    notification = Notification(activity_id=activityID, recipient_id=recipientID)
     collection_ref = db.collection('notifications')
     collection_ref.document(f"{activityID}_{recipientID}").set(asdict(notification))
 
@@ -150,7 +150,7 @@ def createRecipient(email: str, onStrava: bool, firstname: str = '', surname: st
     else:
         if surname:
             surname = f'{surname[0]}.'
-        recipient = Recipient('', email, onStrava, firstname, surname)
+        recipient = Recipient(id='', email=email, on_strava=onStrava, strava_firstname=firstname, strava_lastname=surname)
         recipient_dict = asdict(recipient)
         recipient_dict.pop('id')
         collection_ref = db.collection('mailing_list')

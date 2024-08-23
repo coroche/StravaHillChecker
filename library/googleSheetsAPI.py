@@ -8,7 +8,10 @@ from typing import List
 from datetime import datetime
 from data import config
 from dataclasses import dataclass
+from utils.decorators import trim
 
+
+@trim
 @dataclass
 class Hill:
     id: int
@@ -60,7 +63,7 @@ def getPeaks(SCRIPT_ID: str, service: Resource) -> List[Hill]:
                 "devMode": True}
     try:
         response = service.scripts().run(body=request, scriptId=SCRIPT_ID).execute()
-        hills = [Hill(**config.trimData(hill_data, Hill)) for hill_data in json.loads(response['response']['result'])]
+        hills = [Hill(**hill_data) for hill_data in json.loads(response['response']['result'])]
         return hills
     except errors.HttpError as error:
         print(error.content)

@@ -17,9 +17,9 @@ def test_sendEmail(mocker: MockerFixture):
 
     html = config.getHTMLTemplate('Email.html')
 
-    hill1 = Hill(1, 'Hill1', 0.0, 0.0, True, 'Area1', True, 1000)
-    hill2 = Hill(2, 'Hill2', 0.0, 0.0, True, 'Area2', True, 1000)
-    hill3 = Hill(3, 'Hill3', 0.0, 0.0, False, 'Area3', False, 1000)
+    hill1 = Hill(id=1, name='Hill1', latitude=0.0, longitude=0.0, done=True, Area='Area1', Highest100=True, Height=1000)
+    hill2 = Hill(id=2, name='Hill2', latitude=0.0, longitude=0.0, done=True, Area='Area2', Highest100=True, Height=1000)
+    hill3 = Hill(id=3, name='Hill3', latitude=0.0, longitude=0.0, done=False, Area='Area3', Highest100=False, Height=1000)
 
     allHills = [hill1, hill2, hill3]
     activity = getActivityById(testData.ActivityWithHills)

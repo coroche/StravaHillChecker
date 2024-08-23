@@ -44,14 +44,14 @@ def test_processActivity(mocker):
 
     #Mock call to prevent activity processing
     mocked_ProcessActivity = mocker.patch('main_processActivity.processActivity')
-    hill1 = Hill(1, 'Hill1', 0.0, 0.0, True, 'Area1', True, 1000)
-    hill2 = Hill(2, 'Hill2', 0.0, 0.0, True, 'Area2', True, 1000)
-    hill3 = Hill(3, 'Hill3', 0.0, 0.0, False, 'Area3', False, 1000)
+    hill1 = Hill(id=1, name='Hill1', latitude=0.0, longitude=0.0, done=True, Area='Area1', Highest100=True, Height=1000)
+    hill2 = Hill(id=2, name='Hill2', latitude=0.0, longitude=0.0, done=True, Area='Area2', Highest100=True, Height=1000)
+    hill3 = Hill(id=3, name='Hill3', latitude=0.0, longitude=0.0, done=False, Area='Area3', Highest100=False, Height=1000)
     hills = [hill1, hill2, hill3]
     mocked_ProcessActivity.return_value = (None, hills)
     
     mocked_GetActivity = mocker.patch('main_processActivity.getActivityById')
-    mocked_GetActivity.return_value = Activity(12345, 'Activity1', '2000-01-01T00:00:00Z', '2000-01-01T00:00:00Z', 'Hike', 1000, 100, 1000, 'everyone', False, 10)
+    mocked_GetActivity.return_value = Activity(id=12345, name='Activity1', start_date='2000-01-01T00:00:00Z', start_date_local='2000-01-01T00:00:00Z', sport_type='Hike', distance=1000, moving_time=100, total_elevation_gain=1000, visibility='everyone', private=False, kudos_count=10)
     
     with app.test_request_context('/processActivity'):  
         request = create_sample_request(method='POST', params='activityID=12345')
@@ -73,14 +73,14 @@ def test_processLatestActivity(mocker):
 
     #Mock call to prevent activity processing
     mocked_ProcessActivity = mocker.patch('main_processLatestActivity.processActivity')
-    hill1 = Hill(1, 'Hill1', 0.0, 0.0, True, 'Area1', True, 1000)
-    hill2 = Hill(2, 'Hill2', 0.0, 0.0, True, 'Area2', True, 1000)
-    hill3 = Hill(3, 'Hill3', 0.0, 0.0, False, 'Area3', False, 1000)
+    hill1 = Hill(id=1, name='Hill1', latitude=0.0, longitude=0.0, done=True, Area='Area1', Highest100=True, Height=1000)
+    hill2 = Hill(id=2, name='Hill2', latitude=0.0, longitude=0.0, done=True, Area='Area2', Highest100=True, Height=1000)
+    hill3 = Hill(id=3, name='Hill3', latitude=0.0, longitude=0.0, done=False, Area='Area3', Highest100=False, Height=1000)
     hills = [hill1, hill2, hill3]
     mocked_ProcessActivity.return_value = (None, hills)
     
     mocked_GetActivity = mocker.patch('main_processLatestActivity.getActivities')
-    mocked_GetActivity.return_value = [Activity(12345, 'Activity1', '2000-01-01T00:00:00Z', '2000-01-01T00:00:00Z', 'Hike', 1000, 100, 1000, 'everyone', False, 10)]
+    mocked_GetActivity.return_value = [Activity(id=12345, name='Activity1', start_date='2000-01-01T00:00:00Z', start_date_local='2000-01-01T00:00:00Z', sport_type='Hike', distance=1000, moving_time=100, total_elevation_gain=1000, visibility='everyone', private=False, kudos_count=10)]
     
     mocked_WriteConfig = mocker.patch('main_processLatestActivity.config.write')
 

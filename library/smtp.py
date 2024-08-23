@@ -5,7 +5,10 @@ from email.mime.multipart import MIMEMultipart
 from data import config
 from dataclasses import dataclass
 from typing import List
+from utils.decorators import trim
 
+
+@trim
 @dataclass
 class Email:
 	html: str
