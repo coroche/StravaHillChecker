@@ -140,13 +140,13 @@ def getActivities(per_page: int, page: int) -> List[Activity]:
     return activity_list
 
 
-def getActivityById(activityID: int) -> Activity:
+def getActivityById(activityID: int) -> Activity | None:
     url = f"{settings.base_url}/activities/{activityID}"
     headers = {'Authorization': 'Bearer ' + settings.access_token}
 
     response = makeRequest("GET", url, headers=headers)
     if response.status_code == 404:
-        return Activity(0, '','','','')
+        return None
     activity_json: dict = json.loads(response.text)
     activity = Activity(**activity_json)
     return activity

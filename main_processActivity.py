@@ -2,22 +2,39 @@
 from flask import jsonify, Request, Response
 import functions_framework
 from library.activityFunctions import processActivity
-from library.StravaAPI import getActivityById
+from library.StravaAPI import getActivityById, getActivities
 from dataclasses import asdict
+from data import config
 
 
 @functions_framework.http
 def hello_http(request: Request) -> Response:
 
     if request.method == 'POST':
-    
-        activityID = request.args.get('activityID')
+        
+        try:
+            activityID = int(request.args.get('activityID'))
+        except (TypeError, ValueError):
+            return jsonify({"error": "No valid activityID supplied"}), 400      
+        
+        lastParsedActivity = config.get('last_parsed_activity')
 
-        activity = getActivityById(activityID)
-        if activity.id == 0:
-            return f"Activity {activityID} not found", 404
+        if activityID == 0: #Process latest activity 
+            activity = getActivities(1,1)[0]
+            
+            if activity.id == lastParsedActivity:
+                return jsonify({"ActivityID": activity.id, "message": "Latest activity already processed"}), 200
+            
+        else:
+            activity = getActivityById(activityID)
+            if not activity:
+                return jsonify({"error": f"Activity {activityID} not found"}), 404
 
         _, hills = processActivity(activity.id)
+
+        if activity.id > lastParsedActivity:
+            config.write('last_parsed_activity', activity.id)
+        
         response = {
             "ActivityID": activity.id,
             "HillsClimbed": len(hills),
@@ -27,7 +44,7 @@ def hello_http(request: Request) -> Response:
         return jsonify(response), 200
     
     else:
-        return f"{request.method} method not supported", 500
+        return jsonify({"error": f"{request.method} method not supported"}), 500
         
         
     
