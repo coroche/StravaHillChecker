@@ -123,7 +123,6 @@ def getLoggedInAthlete() -> Athlete:
 
     response = makeRequest("GET", url, headers=headers)
     athlete_data: dict = json.loads(response.text)
-    athlete_data = athlete_data
     return Athlete(**athlete_data)
 
 
@@ -206,7 +205,6 @@ def updateActivityDescription(activityID: int, description: str) -> Activity:
     response = makeRequest("PUT", url, headers=headers, data=payload)
 
     activity_json: dict = json.loads(response.text)
-    activity_json = activity_json
     activity = Activity(**activity_json)
     return activity
 

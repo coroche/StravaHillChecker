@@ -2,18 +2,18 @@ from library import StravaAPI
 from library import activityFunctions
 from data.config import getUnkudosedNotifications
 from Tests.testdata import getTestData
+from pytest import fixture
 from pytest_mock import MockerFixture
 
 testData = getTestData()
 
-def test_processActivityWithHills(mocker: MockerFixture):
-    
-    # mock the smtplib.SMTP_SSL object
-    mock_SMTP = mocker.MagicMock(name="library.smtp.smtplib.SMTP_SSL")
-    mocker.patch("library.smtp.smtplib.SMTP_SSL", new=mock_SMTP)
+@fixture(autouse=True)
+def mock_WriteNotification(mocker: MockerFixture):
+    mocked_writeNotification = mocker.patch('library.activityFunctions.config.writeNotification')
+    return mocked_writeNotification
 
-    #mock writing notifications
-    mocker.patch('library.activityFunctions.config.writeNotification')
+def test_processActivityWithHills():
+
     count = len(getUnkudosedNotifications())
 
     hasHills, hills = activityFunctions.processActivity(testData.ActivityWithHills, ignoreTimeDiff=True)
@@ -28,14 +28,8 @@ def test_processActivityWithHills(mocker: MockerFixture):
     assert len(getUnkudosedNotifications()) == count
 
 
-def test_processActivityWithoutHills(mocker: MockerFixture):
-    
-    # mock the smtplib.SMTP_SSL object
-    mock_SMTP = mocker.MagicMock(name="library.smtp.smtplib.SMTP_SSL")
-    mocker.patch("library.smtp.smtplib.SMTP_SSL", new=mock_SMTP)
+def test_processActivityWithoutHills():
 
-    #mock writing notifications
-    mocker.patch('library.activityFunctions.config.writeNotification')
     count = len(getUnkudosedNotifications())
 
     hasHills, hills = activityFunctions.processActivity(testData.ActivityWithoutHills)
@@ -46,14 +40,8 @@ def test_processActivityWithoutHills(mocker: MockerFixture):
     assert len(getUnkudosedNotifications()) == count
 
 
-def test_processActivity(mocker: MockerFixture):   
+def test_processActivity():   
 
-    # mock the smtplib.SMTP_SSL object
-    mock_SMTP = mocker.MagicMock(name="library.smtp.smtplib.SMTP_SSL")
-    mocker.patch("library.smtp.smtplib.SMTP_SSL", new=mock_SMTP)
-
-    #mock writing notifications
-    mocker.patch('library.activityFunctions.config.writeNotification')
     count = len(getUnkudosedNotifications())
 
     activityFunctions.processActivity(testData.ActivityID)
@@ -62,10 +50,6 @@ def test_processActivity(mocker: MockerFixture):
     assert len(getUnkudosedNotifications()) == count
 
 
-def test_bullyRecipients(mocker: MockerFixture):
-
-    # mock the smtplib.SMTP_SSL object
-    mock_SMTP = mocker.MagicMock(name="library.smtp.smtplib.SMTP_SSL")
-    mocker.patch("library.smtp.smtplib.SMTP_SSL", new=mock_SMTP)
+def test_bullyRecipients():
 
     activityFunctions.bullyRecipients()
