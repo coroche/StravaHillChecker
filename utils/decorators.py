@@ -1,4 +1,5 @@
 from functools import wraps
+from dataclasses import is_dataclass
 
 def trim(cls):
     original_init = cls.__init__
@@ -12,4 +13,7 @@ def trim(cls):
     return cls
 
 def trimData(json_data: dict, cls: type) -> dict:
-    return {key: value for key, value in json_data.items() if key in cls.__annotations__}
+    if is_dataclass(cls):
+        return {key: value for key, value in json_data.items() if key in cls.__dataclass_fields__}
+    else:
+        return {key: value for key, value in json_data.items() if key in cls.__annotations__}

@@ -11,7 +11,7 @@ def test_getPeaks():
     service = googleSheetsAPI.buildService(creds)
     peaks = googleSheetsAPI.getPeaks(settings.google_script_ID, service)
     assert peaks
-    assert all([type(peak) == googleSheetsAPI.Hill for peak in peaks])
+    assert all([isinstance(peak, googleSheetsAPI.Hill) for peak in peaks])
     for peak in peaks:
         for attr, value in peak.__dict__.items():
             if attr not in ['ActivityID']:

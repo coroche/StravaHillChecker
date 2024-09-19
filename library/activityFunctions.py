@@ -69,7 +69,7 @@ def updateAllDescriptions():
         processActivity(activityID)
 
 
-def getHillList(service: googleSheetsAPI.Resource) -> List[googleSheetsAPI.Hill]:
+def getSheetsHillList(service: googleSheetsAPI.Resource) -> List[googleSheetsAPI.Hill]:
     scriptID = settings.google_script_ID
     hillList = googleSheetsAPI.getPeaks(scriptID, service)
     return hillList
@@ -77,7 +77,7 @@ def getHillList(service: googleSheetsAPI.Resource) -> List[googleSheetsAPI.Hill]
 
 def processActivity(activityID: int, ignoreTimeDiff: bool = False) -> tuple[bool, List[googleSheetsAPI.Hill]]:  
     googleService = googleSheetsAPI.getService()
-    allHills = getHillList(googleService)
+    allHills = getSheetsHillList(googleService)
     activity = StravaAPI.getActivityById(activityID)
 
     activity.hills = checkActivityForHills(activityID, allHills, plot=False, n=1)

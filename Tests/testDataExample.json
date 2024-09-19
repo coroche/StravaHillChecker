@@ -6,5 +6,16 @@
         "Hill 2", 
         "Hill 3"
     ],
-    "ActivityID": 12345
+    "ActivityID": 12345,
+    "GCPProject": "My Project",
+    "RecipientID": "123ABC",
+    "RecipientEmail": "example@mail.com",
+    "TestEmail": "example@mail.com",
+    "StravaName": "JohnDoe",
+    "HillID": "123ABC",
+    "HillListID":"123ABC",
+    "HillListName": "My Hill List",
+    "HillListCount": 100,
+    "UserId": "123ABC",
+    "UserEmail": "example@mail.com"
 }
