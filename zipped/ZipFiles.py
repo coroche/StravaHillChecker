@@ -30,7 +30,7 @@ zip_file_name = 'zipped/subscribe.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
 
 #Zip files for the getmap cloud function
-files_to_zip = ['utils/__init__.py', 'utils/decorators.py', 'data/config.py', 'main_getmap.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/map.html', 'data/__init__.py', 'library/__init__.py', 'library/googleSheetsAPI.py']
-archive_file_names = ['utils/__init__.py', 'utils/decorators.py', 'data/config.py', 'main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/map.html', 'data/__init__.py', 'library/__init__.py', 'library/googleSheetsAPI.py']
+files_to_zip = ['utils/__init__.py', 'utils/decorators.py', 'data/config.py', 'data/hillsDAO.py', 'data/userDAO.py', 'main_getmap.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/map.html', 'data/html_templates/message.html', 'data/__init__.py', 'library/__init__.py', 'library/googleSheetsAPI.py']
+archive_file_names = ['utils/__init__.py', 'utils/decorators.py', 'data/config.py', 'data/hillsDAO.py', 'data/userDAO.py', 'main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/map.html', 'data/html_templates/message.html', 'data/__init__.py', 'library/__init__.py', 'library/googleSheetsAPI.py']
 zip_file_name = 'zipped/getmap.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)

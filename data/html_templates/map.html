@@ -230,64 +230,25 @@
         var smallIcon = 30;
         var icon_url = "{{icon_bucket}}"
 
-        var HighestHundredIcon = {
-          url: icon_url + "/HighestHundred.png",
-          scaledSize: new google.maps.Size(smallIcon, smallIcon),
-          anchor: new google.maps.Point(smallIcon/2, smallIcon/2),
+        function getIcon(icon_url, icon_file_name, size) {
+          var icon = {
+            url: icon_url + "/" + icon_file_name,
+            scaledSize: new google.maps.Size(size, size),
+            anchor: new google.maps.Point(size/2, size/2),
+          };
+          return icon
         };
 
-        var VLIcon = {
-          url: icon_url + "/VL.png",
-          scaledSize: new google.maps.Size(smallIcon, smallIcon),
-          anchor: new google.maps.Point(smallIcon/2, smallIcon/2),
-        };
-
-        var HighestHundredDoneIcon = {
-          url: icon_url + "/HighestHundredDone.png",
-          scaledSize: new google.maps.Size(smallIcon, smallIcon),
-          anchor: new google.maps.Point(smallIcon/2, smallIcon/2),
-        };
-
-        var VLDoneIcon = {
-          url: icon_url + "/VLDone.png",
-          scaledSize: new google.maps.Size(smallIcon, smallIcon),
-          anchor: new google.maps.Point(smallIcon/2, smallIcon/2),
-        };
-
-        var HighestHundredIcon_selected = {
-          url: icon_url + "/HighestHundred.png",
-          scaledSize: new google.maps.Size(bigIcon, bigIcon),
-          anchor: new google.maps.Point(bigIcon/2, bigIcon/2),
-        };
-
-        var VLIcon_selected = {
-          url: icon_url + "/VL.png",
-          scaledSize: new google.maps.Size(bigIcon, bigIcon),
-          anchor: new google.maps.Point(bigIcon/2, bigIcon/2),
-        };
-
-        var HighestHundredDoneIcon_selected = {
-          url: icon_url + "/HighestHundredDone.png",
-          scaledSize: new google.maps.Size(bigIcon, bigIcon),
-          anchor: new google.maps.Point(bigIcon/2, bigIcon/2),
-        };
-
-        var VLDoneIcon_selected = {
-          url: icon_url + "/VLDone.png",
-          scaledSize: new google.maps.Size(bigIcon, bigIcon),
-          anchor: new google.maps.Point(bigIcon/2, bigIcon/2),
-        };
-
-        var icons = {
-          'HighestHundredIcon': HighestHundredIcon,
-          'VLIcon': VLIcon,
-          'HighestHundredDoneIcon': HighestHundredDoneIcon,
-          'VLDoneIcon': VLDoneIcon,
-          'HighestHundredIcon_selected': HighestHundredIcon_selected,
-          'VLIcon_selected': VLIcon_selected,
-          'HighestHundredDoneIcon_selected': HighestHundredDoneIcon_selected,
-          'VLDoneIcon_selected': VLDoneIcon_selected
-        };
+        function AddIconSet(icons, set_name, icon_url, smallIcon, bigIcon) {
+          icons[set_name + 'Icon'] = getIcon(icon_url, set_name + '.png', smallIcon);
+          icons[set_name + 'DoneIcon'] = getIcon(icon_url, set_name + 'Done.png', smallIcon);
+          icons[set_name + 'Icon_selected'] = getIcon(icon_url, set_name + '.png', bigIcon);
+          icons[set_name + 'DoneIcon_selected'] = getIcon(icon_url, set_name + 'Done.png', bigIcon);
+        }
+        var icons = {};
+        AddIconSet(icons, 'HighestHundred', icon_url, smallIcon, bigIcon);
+        AddIconSet(icons, 'VL', icon_url, smallIcon, bigIcon);
+        AddIconSet(icons, 'Peak', icon_url, smallIcon, bigIcon);
 
         // Create a marker for each location.
         const markers = locator.locations.map(function(location, index) {

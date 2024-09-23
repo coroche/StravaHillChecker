@@ -1,21 +1,21 @@
-#for use with google cloud functions
 from flask import jsonify, Request, Response
 import functions_framework
 from library.activityFunctions import processActivity
 from library.StravaAPI import getActivityById, getActivities
 from dataclasses import asdict
 from data import config
+from http import HTTPStatus
 
 
 @functions_framework.http
-def hello_http(request: Request) -> Response:
+def hello_http(request: Request) -> tuple[Response, HTTPStatus]:
 
     if request.method == 'POST':
         
         try:
             activityID = int(request.args.get('activityID'))
         except (TypeError, ValueError):
-            return jsonify({"error": "No valid activityID supplied"}), 400      
+            return jsonify({"error": "No valid activityID supplied"}), HTTPStatus.BAD_REQUEST      
         
         lastParsedActivity = config.get('last_parsed_activity')
 
@@ -28,7 +28,7 @@ def hello_http(request: Request) -> Response:
         else:
             activity = getActivityById(activityID)
             if not activity:
-                return jsonify({"error": f"Activity {activityID} not found"}), 404
+                return jsonify({"error": f"Activity {activityID} not found"}), HTTPStatus.NOT_FOUND
 
         _, hills = processActivity(activity.id)
 
@@ -41,10 +41,10 @@ def hello_http(request: Request) -> Response:
             "Hills": [asdict(hill) for hill in hills]
         }
     
-        return jsonify(response), 200
+        return jsonify(response), HTTPStatus.OK
     
     else:
-        return jsonify({"error": f"{request.method} method not supported"}), 500
+        return jsonify({"error": f"{request.method} method not supported"}), HTTPStatus.BAD_REQUEST
         
         
     

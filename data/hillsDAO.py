@@ -1,7 +1,5 @@
 from dataclasses import dataclass, asdict
 from utils.decorators import trim
-from library import googleSheetsAPI
-from library.activityFunctions import getSheetsHillList
 from data.config import db
 from firebase_admin import firestore 
 
@@ -40,8 +38,8 @@ def addHillToList(hillPath: str, listRef: str) -> None:
     })
 
 def populateHills():
-    googleService = googleSheetsAPI.getService()
-    allHills = getSheetsHillList(googleService)
+    allHills: list[Hill] = []
+    #Append hills here
     for hill in allHills:
         addNewHill(hill)
 
@@ -49,15 +47,8 @@ def populateHillList(listRef: str):
     hillDocs = db.collection('hills').list_documents()
     hillsInList = db.collection('hill_lists').document(listRef).get().to_dict()['hills']
     for doc in hillDocs:
-        if doc not in hillsInList:
-            addHillToList(doc.path, listRef)
-
-def populateHHHillList(listRef: str):
-    hillDocs = db.collection('hills').list_documents()
-    hillsInList = db.collection('hill_lists').document(listRef).get().to_dict()['hills']
-    for doc in hillDocs:
         hill = getHillByID(doc.id)
-        if doc not in hillsInList and hill.Highest100 == 1:
+        if doc not in hillsInList and hill: #Add criteria to include hill in list here
             addHillToList(doc.path, listRef)
 
 def getHillByID(id: str) -> Hill:

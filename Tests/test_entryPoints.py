@@ -2,19 +2,24 @@ from flask import Flask, Request
 import main_stravaWebhook
 import main_processActivity
 import main_subscribe
+import main_getmap
 from werkzeug.test import EnvironBuilder
 from data import config
 from library.googleSheetsAPI import Hill
 from library.StravaAPI import Activity
 from pytest import fixture
+from pytest_mock import MockerFixture
+from unittest.mock import MagicMock
+from Tests.testdata import getTestData
 
+testData = getTestData()
 
 app = Flask(__name__)
 settings = config.getConfig()
 
 
 @fixture(autouse=True)
-def mock_processActivity(mocker):
+def mock_processActivity(mocker: MockerFixture) -> MagicMock:
     mocked_ProcessActivity = mocker.patch('main_processActivity.processActivity')
     hill1 = Hill(id=1, name='Hill1', latitude=0.0, longitude=0.0, done=True, Area='Area1', Highest100=True, Height=1000)
     hill2 = Hill(id=2, name='Hill2', latitude=0.0, longitude=0.0, done=True, Area='Area2', Highest100=True, Height=1000)
@@ -27,7 +32,7 @@ def mock_processActivity(mocker):
 
 
 @fixture(autouse=True)
-def mock_getActivityByID(mocker):
+def mock_getActivityByID(mocker: MockerFixture):
     mocked_GetActivity = mocker.patch('main_processActivity.getActivityById')
     mocked_GetActivity.side_effect = lambda key: {
             12345: Activity(id=12345, name='Activity1', start_date='2000-01-01T00:00:00Z', start_date_local='2000-01-01T00:00:00Z', sport_type='Hike', distance=1000, moving_time=100, total_elevation_gain=1000, visibility='everyone', private=False, kudos_count=10)
@@ -36,20 +41,20 @@ def mock_getActivityByID(mocker):
 
 
 @fixture(autouse=True)
-def mock_getActivities(mocker):
+def mock_getActivities(mocker: MockerFixture):
     mocked_GetActivities = mocker.patch('main_processActivity.getActivities')
     mocked_GetActivities.return_value = [Activity(id=12345, name='Activity1', start_date='2000-01-01T00:00:00Z', start_date_local='2000-01-01T00:00:00Z', sport_type='Hike', distance=1000, moving_time=100, total_elevation_gain=1000, visibility='everyone', private=False, kudos_count=10)]
     return mocked_GetActivities
 
 
 @fixture(autouse=True)
-def mock_writeConfig(mocker):
+def mock_writeConfig(mocker: MockerFixture):
     mocked_WriteConfig = mocker.patch('main_processActivity.config.write')
     return mocked_WriteConfig
 
 
 @fixture(autouse=True)
-def mock_getConfig(mocker):
+def mock_getConfig(mocker: MockerFixture):
     mocked_ConfigGet = mocker.patch('main_processActivity.config.get')
     mocked_ConfigGet.side_effect = lambda key: {
             'last_parsed_activity': 12344
@@ -58,32 +63,27 @@ def mock_getConfig(mocker):
 
 
 @fixture(autouse=True)
-def mock_deleteRecipient(mocker):
+def mock_deleteRecipient(mocker: MockerFixture):
     mocked_DeleteRecipient = mocker.patch('data.config.deleteRecipient')
     return mocked_DeleteRecipient
 
 
 @fixture(autouse=True)
-def mock_processActivityFromWebhookListener(mocker):
+def mock_processActivityFromWebhookListener(mocker: MockerFixture):
     mocked_ProcessActivity = mocker.patch('main_stravaWebhook.callProcessActivity')
     return mocked_ProcessActivity
 
 
 
 def create_sample_request(method='GET', path='/sample', data=None, params=None):
-    # Construct an environment for the request
     builder = EnvironBuilder(method=method, path=path, json=data, query_string=params)
     env = builder.get_environ()
-
-    # Create a Request object using the constructed environment
     request = Request(env)
     return request
 
 
-
-def test_webhookListener(mock_processActivityFromWebhookListener):
-    with app.test_request_context('/stravaWebhook'):
-        
+def test_webhookListener(mock_processActivityFromWebhookListener: MagicMock):
+    with app.test_request_context('/stravaWebhook'):       
         request = create_sample_request(method='POST', data={'object_type':'activity', 'object_id':12345})
         response = main_stravaWebhook.hello_http(request)
         assert response == ('Processing activity 12345', 200)
@@ -99,7 +99,7 @@ def test_webhookVerification():
         assert response.json['hub.challenge'] == 'test_challenge'
 
 
-def test_processActivity(mock_processActivity):
+def test_processActivity(mock_processActivity: MagicMock):
     with app.test_request_context('/processActivity'):  
         request = create_sample_request(method='POST', params='activityID=12345')
         response, status_code = main_processActivity.hello_http(request)
@@ -116,7 +116,7 @@ def test_processActivity(mock_processActivity):
     assert mock_processActivity.call_args.args == (12345,)
 
 
-def test_processLatestActivity(mock_processActivity, mock_writeConfig):
+def test_processLatestActivity(mock_processActivity: MagicMock, mock_writeConfig: MagicMock):
     with app.test_request_context('/processActivity'):  
         request = create_sample_request(method='POST', params='activityID=0')
         response, status_code = main_processActivity.hello_http(request)
@@ -135,7 +135,7 @@ def test_processLatestActivity(mock_processActivity, mock_writeConfig):
     assert mock_writeConfig.call_args.args == ('last_parsed_activity', 12345)
 
 
-def test_unsubscribe(mock_deleteRecipient):
+def test_unsubscribe(mock_deleteRecipient: MagicMock):
     with app.test_request_context('/subscribe/unsubscribe'):
         
         request = create_sample_request(method='GET', path = '/unsubscribe', params= 'subscriberID=123ABC')
@@ -145,3 +145,28 @@ def test_unsubscribe(mock_deleteRecipient):
         assert response.status_code == 200
         assert mock_deleteRecipient.call_count == 1
         assert mock_deleteRecipient.call_args.args == ('123ABC',)
+
+def test_getMap():
+    with app.test_request_context('/getmap'):
+        request = create_sample_request(params= f'UserId={testData.UserId}&ListId={testData.HillListID}')
+        response = main_getmap.gcf_entry_point(request)
+        assert response
+        assert response.status_code == 200
+        assert '"PeakDoneIcon"' in str(response.data) or '"PeakIcon"' in str(response.data)
+
+def test_getDefaultMap():
+    with app.test_request_context('/getmap'):
+        request = create_sample_request()
+        response = main_getmap.gcf_entry_point(request)
+        assert response
+        assert response.status_code == 200
+        assert '"VLDoneIcon"' in str(response.data) or '"VLIcon"' in str(response.data)
+
+def test_getInvalidMap():
+    with app.test_request_context('/getmap'):
+        request = create_sample_request(params= f'UserId={testData.UserId}&ListId={testData.HillListID}X')
+        response = main_getmap.gcf_entry_point(request)
+        assert response
+        assert response.status_code == 400
+        assert 'Invalid parameters' in str(response.data)
+

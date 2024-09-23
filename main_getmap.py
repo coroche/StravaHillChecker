@@ -1,17 +1,24 @@
-from flask import Flask
-from data.config import getHTMLTemplate
-from library.googleSheetsAPI import getPeaks, login, buildService, Hill
+from flask import Flask, Request, Response, render_template_string
+from data.config import getHTMLTemplate, Config
+from data.hillsDAO import Hill
 from data.config import getConfig
+from library.googleSheetsAPI import getPeaks, login, buildService, Hill as SheetsHill
 import json
+from data.userDAO import getUserHillList
+from http import HTTPStatus
 
 app = Flask(__name__)
 
-def createMapLocationDict(peak: Hill, icon_bucket: str) -> dict:
-    cat, done = 'VL','' 
+def createMapLocationDict(peak: Hill | SheetsHill, icon_bucket: str) -> dict:
+    cat = 'Peak'
+    if isinstance(peak, SheetsHill):
+        cat = 'VL'
+        if peak.Highest100:
+            cat = 'HighestHundred'
+    
+    done = ''
     if peak.done:
-        done = 'Done'
-    if peak.Highest100:
-        cat = 'HighestHundred'
+            done = 'Done'
     actions = []
     if peak.ActivityID:
         actions = [{"label":"Strava","defaultUrl":f"https://www.strava.com/activities/{peak.ActivityID}"}]
@@ -28,12 +35,8 @@ def createMapLocationDict(peak: Hill, icon_bucket: str) -> dict:
         }
     return d
 
-def serve_form():
-    creds = login()
-    service = buildService(creds)
-    settings = getConfig()
-    
-    peaks = getPeaks(settings.google_script_ID, service)
+
+def serve_map(peaks: list[Hill] | list[SheetsHill], settings: Config) -> Response:
     peaks_dict = [createMapLocationDict(peak, settings.map_icon_bucket) for peak in peaks]
     json_data = json.dumps(peaks_dict)
     js_list_content = f'"locations": {json_data},'
@@ -43,11 +46,35 @@ def serve_form():
         .replace('<!-- Add location list here -->', js_list_content)\
         .replace('{{APIToken}}', settings.google_maps_api_key)\
         .replace('{{icon_bucket}}', settings.map_icon_bucket)
-
-    return html
-
+    return Response(html, HTTPStatus.OK)
 
 
-def gcf_entry_point(request):
+def return_error(message, code: HTTPStatus) -> Response:
+    template = getHTMLTemplate('message.html')
+    html = render_template_string(template, message=message)
+    return Response(html, code)
 
-    return serve_form()
+
+def gcf_entry_point(request: Request) -> Response:
+    settings = getConfig()
+    userId = request.args.get('UserId')
+    listId = request.args.get('ListId')
+
+    if not userId and not listId:
+        creds = login()
+        service = buildService(creds)    
+        peaks = getPeaks(settings.google_script_ID, service)
+
+    else:
+        if not userId:
+            return return_error('No userId provided', HTTPStatus.BAD_REQUEST)
+       
+        if not listId:
+            return return_error('No listId provided', HTTPStatus.BAD_REQUEST)
+
+        hillList = getUserHillList(userId, listId)
+        if not hillList:
+            return return_error('Invalid parameters', HTTPStatus.BAD_REQUEST)
+        peaks = hillList.hills
+
+    return serve_map(peaks, settings)

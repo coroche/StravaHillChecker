@@ -18,3 +18,10 @@ def test_getUser():
         assert all([isinstance(hill, Hill) for hill in hillList.hills])
     assert elapsed_time < 0.5
 
+def test_getUserHillList():
+    hillList = userDAO.getUserHillList(testData.UserId, testData.HillListID)
+    assert hillList
+    assert hillList.name == testData.HillListName
+    assert len(hillList.hills) == testData.HillListCount
+    assert hillList.numberCompleted == len([hill for hill in hillList.hills if hill.done])
+

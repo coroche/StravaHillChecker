@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from utils.decorators import trim
 from data.config import db
 from data.hillsDAO import getHillList, HillList, Hill
@@ -32,7 +32,7 @@ def getUser(userId: str, updateHillCounts: bool = False) -> User:
                 hill.done = True
 
         hill_lists.append(userHillList)
-
+    
     if updateHillCounts:
         counts = {}
         for hill_list in hill_lists:
@@ -46,6 +46,34 @@ def getUser(userId: str, updateHillCounts: bool = False) -> User:
         })
 
     return User(id=userId, hill_lists=hill_lists, **user_data)
+
+def getUserHillList(userId: str, listId: str) -> HillList | None:
+    user_doc = db.collection('users').document(userId)
+    user_data = user_doc.get().to_dict()
+    if not user_data:
+        return None
+    
+    user_data_hill_lists = user_data.pop('hill_lists')
+
+    hill_list = [hill_list for hill_list in user_data_hill_lists if hill_list['list'].id == listId]
+    if not hill_list:
+        return None
+    
+    hill_list = hill_list[0]
+    completed = hill_list['numberCompleted']
+    userHillList = getHillList(hill_list['list'].id)
+    userHillList.numberCompleted = completed
+
+    completedHillsDict = user_data['completed_hills']
+
+    for hill in userHillList.hills:
+        if hill.id in completedHillsDict:
+            hill.ActivityID = completedHillsDict[hill.id]
+            hill.done = True
+    
+    userHillList_dict = asdict(userHillList)
+    userHillList_dict.pop('hills')
+    return HillList(hills= userHillList.hills, **userHillList_dict)
 
 
 def recordCompletedHills(userId: str, hillIds: list[str], activityId: int, user_data: dict = None) -> User:
