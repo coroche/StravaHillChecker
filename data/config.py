@@ -8,6 +8,7 @@ import uuid
 from google.cloud.firestore_v1.client import Client
 from google.cloud.firestore_v1.base_query import FieldFilter
 from utils.decorators import trim
+from datetime import datetime, timedelta, timezone
 
 
 cred = credentials.Certificate('data/firebaseServiceAccountKey.json')
@@ -62,6 +63,7 @@ class Notification:
     activity_id: int
     recipient_id: str
     kudos: bool = False
+    notificationDate: datetime = datetime(1900, 1, 1, 0, 0)
 
 
 def getConfig() -> Config:   
@@ -112,13 +114,16 @@ def getActivityNotifications(activityID: int) -> List[Notification]:
     return [Notification(**doc.to_dict()) for doc in activityNotifications]
 
 
-def getUnkudosedNotifications() -> List[Notification]:   
-    activityNotifications = db.collection('notifications').where(filter=FieldFilter('kudos', '==', False)).get()
-    return [Notification(**doc.to_dict()) for doc in activityNotifications]
+def getUnkudosedNotifications(ignoreTimeDiff: bool = False) -> List[Notification]:
+    activityNotifications = db.collection('notifications').where(filter=FieldFilter('kudos', '==', False))
+    if not ignoreTimeDiff:
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        activityNotifications = activityNotifications.where(filter=FieldFilter('notificationDate', '>=', seven_days_ago))
+    return [Notification(**doc.to_dict()) for doc in activityNotifications.get()]
 
 
 def writeNotification(activityID: int, recipientID: str):   
-    notification = Notification(activity_id=activityID, recipient_id=recipientID)
+    notification = Notification(activity_id=activityID, recipient_id=recipientID, notificationDate=datetime.now(timezone.utc))
     collection_ref = db.collection('notifications')
     collection_ref.document(f"{activityID}_{recipientID}").set(asdict(notification))
 
@@ -176,7 +181,7 @@ def verifyRecipientEmail(id: str) -> None:
     doc_ref.update({'email_verified': True})
 
 
-def getHTMLTemplate(filename):
+def getHTMLTemplate(filename: str) -> str:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(current_dir, 'html_templates', filename)
 

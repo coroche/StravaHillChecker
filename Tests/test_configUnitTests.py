@@ -36,7 +36,7 @@ def test_getActivityNotifications():
     assert activityNotifications
 
 def test_getUnkudosedNotifications():
-    unkudosedNotifications = config.getUnkudosedNotifications()
+    unkudosedNotifications = config.getUnkudosedNotifications(ignoreTimeDiff=True)
     assert unkudosedNotifications
     assert all([not notification.kudos for notification in unkudosedNotifications])
 
