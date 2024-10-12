@@ -34,3 +34,9 @@ files_to_zip = ['utils/__init__.py', 'utils/decorators.py', 'data/config.py', 'd
 archive_file_names = ['utils/__init__.py', 'utils/decorators.py', 'data/config.py', 'data/hillsDAO.py', 'data/userDAO.py', 'main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/map.html', 'data/html_templates/message.html', 'data/__init__.py', 'library/__init__.py', 'library/googleSheetsAPI.py']
 zip_file_name = 'zipped/getmap.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
+
+#Zip files for the getChart cloud function
+files_to_zip = ['utils/__init__.py', 'utils/decorators.py', 'data/config.py', 'data/hillsDAO.py', 'data/userDAO.py', 'main_getChart.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/pieChart.html', 'data/html_templates/message.html', 'data/__init__.py', 'library/__init__.py']
+archive_file_names = ['utils/__init__.py', 'utils/decorators.py', 'data/config.py', 'data/hillsDAO.py', 'data/userDAO.py', 'main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/pieChart.html', 'data/html_templates/message.html', 'data/__init__.py', 'library/__init__.py']
+zip_file_name = 'zipped/getChart.zip'
+zip_files(files_to_zip, zip_file_name, archive_file_names)

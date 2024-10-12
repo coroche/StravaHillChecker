@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <body style="width: 230px; height: 230px; margin: auto">
+    <div>
+      <canvas id="pieChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+    <script>
+      const ctx = document.getElementById("pieChart");
+
+      const data = {
+        labels: ["Done", "To go"],
+        datasets: [
+          {
+            data: [{Done}, {ToGo}],
+            backgroundColor: ["#097138", "#7cb342"],
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  let value = context.formattedValue;
+
+                  let sum = 0;
+                  let dataArr = context.chart.data.datasets[0].data;
+                  dataArr.map((data) => {
+                    sum += Number(data);
+                  });
+
+                  let percentage = ((value * 100) / sum).toFixed(2) + "%";
+                  return " " + percentage;
+                },
+              },
+            },
+          },
+        ],
+      };
+
+      const config = {
+        type: "doughnut",
+        data: data,
+        options: {
+          cutout: "30%",
+          responsive: true,
+          plugins: {
+            datalabels: {
+              formatter: function (value, context) {
+                return (
+                  context.chart.data.labels[context.dataIndex] + ":\n" + value
+                );
+              },
+              color: "#fff",
+              font: {
+                weight: "normal",
+                size: 14,
+              },
+              anchor: "center",
+              align: "center",
+            },
+            legend: {
+              display: false,
+            },
+          },
+        },
+        plugins: [ChartDataLabels],
+      };
+
+      new Chart(ctx, config);
+    </script>
+  </body>
+</html>

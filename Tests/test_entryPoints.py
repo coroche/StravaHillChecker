@@ -3,6 +3,7 @@ import main_stravaWebhook
 import main_processActivity
 import main_subscribe
 import main_getmap
+import main_getchart
 from werkzeug.test import EnvironBuilder
 from data import config
 from library.googleSheetsAPI import Hill
@@ -169,4 +170,11 @@ def test_getInvalidMap():
         assert response
         assert response.status_code == 400
         assert 'Invalid parameters' in str(response.data)
+
+def test_getChart():
+    with app.test_request_context('/getChart'):
+        request = create_sample_request(params= f'UserId={testData.UserId}&ListId={testData.HillListID}')
+        response = main_getchart.gcf_entry_point(request)
+        assert response
+        assert response.status_code == 200
 
