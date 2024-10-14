@@ -20,7 +20,11 @@ def isHillBagged(hill: hillsDAO.Hill, points: np.ndarray, n: int) -> bool:
 
 
 def checkActivityForHills(activityID: int, allHills: List[hillsDAO.Hill], plot: bool = False, n: int = 1) -> List[hillsDAO.Hill]:    
-    stream = StravaAPI.getActivityStreams(activityID, ['latlng'])[0]
+    streams = StravaAPI.getActivityStreams(activityID, ['latlng'])
+    if not streams:
+        return []
+    
+    stream = streams[0]
     streamLatLng = np.array(stream.data)
     lat = streamLatLng[:,0][0::n]
     lng = streamLatLng[:,1][0::n]
