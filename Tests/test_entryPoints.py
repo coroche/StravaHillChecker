@@ -5,7 +5,7 @@ import main_subscribe
 import main_getmap
 import main_getchart
 from werkzeug.test import EnvironBuilder
-from data import config
+from data import config, userDAO
 from library.googleSheetsAPI import Hill
 from library.StravaAPI import Activity
 from pytest import fixture
@@ -26,9 +26,9 @@ def mock_processActivity(mocker: MockerFixture) -> MagicMock:
     hill2 = Hill(id=2, name='Hill2', latitude=0.0, longitude=0.0, done=True, Area='Area2', Highest100=True, Height=1000)
     hill3 = Hill(id=3, name='Hill3', latitude=0.0, longitude=0.0, done=False, Area='Area3', Highest100=False, Height=1000)
     hills = [hill1, hill2, hill3]
-    mocked_ProcessActivity.side_effect = lambda key: {
-            12345: (None, hills)
-        }.get(key, None) 
+    mocked_ProcessActivity.side_effect = lambda activityId, _: {
+            12345: (True, hills)
+        }.get(activityId, None) 
     return mocked_ProcessActivity
 
 
@@ -85,11 +85,11 @@ def create_sample_request(method='GET', path='/sample', data=None, params=None):
 
 def test_webhookListener(mock_processActivityFromWebhookListener: MagicMock):
     with app.test_request_context('/stravaWebhook'):       
-        request = create_sample_request(method='POST', data={'object_type':'activity', 'object_id':12345})
+        request = create_sample_request(method='POST', data={'object_type':'activity', 'object_id':12345, "owner_id": 54321})
         response = main_stravaWebhook.hello_http(request)
         assert response == ('Processing activity 12345', 200)
         assert mock_processActivityFromWebhookListener.call_count == 1
-        assert mock_processActivityFromWebhookListener.call_args.args == (12345,)
+        assert mock_processActivityFromWebhookListener.call_args.args == (12345,54321)
 
 
 def test_webhookVerification():
@@ -102,7 +102,7 @@ def test_webhookVerification():
 
 def test_processActivity(mock_processActivity: MagicMock):
     with app.test_request_context('/processActivity'):  
-        request = create_sample_request(method='POST', params='activityID=12345')
+        request = create_sample_request(method='POST', params=f'activityID=12345&athleteID={testData.AthleteId}')
         response, status_code = main_processActivity.hello_http(request)
     
     assert status_code == 200
@@ -114,12 +114,14 @@ def test_processActivity(mock_processActivity: MagicMock):
     ]
     assert response.json['HillsClimbed'] == 3
     assert mock_processActivity.call_count == 1
-    assert mock_processActivity.call_args.args == (12345,)
+
+    user = userDAO.getUser(userId=testData.UserId)
+    assert mock_processActivity.call_args.args == (12345, user)
 
 
 def test_processLatestActivity(mock_processActivity: MagicMock, mock_writeConfig: MagicMock):
     with app.test_request_context('/processActivity'):  
-        request = create_sample_request(method='POST', params='activityID=0')
+        request = create_sample_request(method='POST', params=f'activityID=0&athleteID={testData.AthleteId}')
         response, status_code = main_processActivity.hello_http(request)
     
     assert status_code == 200
@@ -131,7 +133,10 @@ def test_processLatestActivity(mock_processActivity: MagicMock, mock_writeConfig
     ]    
     assert response.json['HillsClimbed'] == 3
     assert mock_processActivity.call_count == 1
-    assert mock_processActivity.call_args.args == (12345,)
+
+    user = userDAO.getUser(userId=testData.UserId)
+    assert mock_processActivity.call_args.args == (12345, user)
+
     assert mock_writeConfig.call_count == 1
     assert mock_writeConfig.call_args.args == ('last_parsed_activity', 12345)
 

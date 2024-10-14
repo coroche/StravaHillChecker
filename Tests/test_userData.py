@@ -7,7 +7,7 @@ testData = getTestData()
 
 def test_getUser():
     start_time = time.time()  
-    user = userDAO.getUser(testData.UserId)
+    user = userDAO.getUser(userId=testData.UserId)
     end_time = time.time()    
     elapsed_time = end_time - start_time 
 
@@ -18,10 +18,33 @@ def test_getUser():
         assert all([isinstance(hill, Hill) for hill in hillList.hills])
     assert elapsed_time < 0.5
 
+    hills = user.getAllHills()
+    assert hills
+    assert len([hill.id for hill in hills]) == len({hill.id for hill in hills}) #Assert no duplicates
+
 def test_getUserHillList():
     hillList = userDAO.getUserHillList(testData.UserId, testData.HillListID)
     assert hillList
     assert hillList.name == testData.HillListName
     assert len(hillList.hills) == testData.HillListCount
     assert hillList.numberCompleted == len([hill for hill in hillList.hills if hill.done])
+
+def test_markHillsCompleted():
+    user = userDAO.getUser(userId=testData.TestUserId)
+    assert user.hill_lists[0].numberCompleted == 0
+    _, _, user_data = userDAO.getRawUserData(userId=testData.TestUserId)
+    assert len(user_data['completed_hills']) == 0
+    
+    user.recordCompletedHills([testData.HillID, testData.HillID2], 12345)
+    assert user.hill_lists[0].numberCompleted == 2
+    _, _, user_data = userDAO.getRawUserData(userId=testData.TestUserId)
+    assert len(user_data['completed_hills']) == 2
+
+    user.deleteCompletedHills([testData.HillID, testData.HillID2])
+    assert user.hill_lists[0].numberCompleted == 0
+    _, _, user_data = userDAO.getRawUserData(userId=testData.TestUserId)
+    assert len(user_data['completed_hills']) == 0
+
+
+    
 

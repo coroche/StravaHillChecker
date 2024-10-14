@@ -5,6 +5,7 @@ from library.StravaAPI import getActivityById, getActivities
 from dataclasses import asdict
 from data import config
 from http import HTTPStatus
+from data import userDAO
 
 
 @functions_framework.http
@@ -14,10 +15,13 @@ def hello_http(request: Request) -> tuple[Response, HTTPStatus]:
         
         try:
             activityID = int(request.args.get('activityID'))
+            athleteID = int(request.args.get('athleteID'))
         except (TypeError, ValueError):
-            return jsonify({"error": "No valid activityID supplied"}), HTTPStatus.BAD_REQUEST      
+            return jsonify({"error": "No valid activityID or athleteID supplied"}), HTTPStatus.BAD_REQUEST      
         
         lastParsedActivity = config.get('last_parsed_activity')
+
+        user = userDAO.getUser(athleteId=athleteID)
 
         if activityID == 0: #Process latest activity 
             activity = getActivities(1,1)[0]
@@ -30,7 +34,7 @@ def hello_http(request: Request) -> tuple[Response, HTTPStatus]:
             if not activity:
                 return jsonify({"error": f"Activity {activityID} not found"}), HTTPStatus.NOT_FOUND
 
-        _, hills = processActivity(activity.id)
+        _, hills = processActivity(activity.id, user)
 
         if activity.id > lastParsedActivity:
             config.write('last_parsed_activity', activity.id)

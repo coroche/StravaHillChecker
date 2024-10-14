@@ -31,17 +31,20 @@ def addNewHill(hill: Hill) -> None:
     collection_ref = db.collection('hills')
     collection_ref.add(hill_dict)
 
+
 def addHillToList(hillPath: str, listRef: str) -> None:
     list_doc = db.collection('hill_lists').document(listRef)
     list_doc.update({
         'hills': firestore.ArrayUnion([db.document(hillPath)])
     })
 
+
 def populateHills():
     allHills: list[Hill] = []
     #Append hills here
     for hill in allHills:
         addNewHill(hill)
+
 
 def populateHillList(listRef: str):
     hillDocs = db.collection('hills').list_documents()
@@ -51,13 +54,15 @@ def populateHillList(listRef: str):
         if doc not in hillsInList and hill: #Add criteria to include hill in list here
             addHillToList(doc.path, listRef)
 
+
 def getHillByID(id: str) -> Hill:
     data = db.collection('hills').document(id).get().to_dict()
     if data:
         return Hill(id = id, **data)
     else:
         return None
-    
+
+   
 def getHillList(listId: str) -> HillList | None:
     listDict = db.collection('hill_lists').document(listId).get().to_dict()
 
@@ -70,6 +75,7 @@ def getHillList(listId: str) -> HillList | None:
     hillList = getHills(refList)
     return HillList(id= listId, name= name, hills= hillList)
 
+
 def getHills(references: list[str]) -> list[Hill]:
     hillList = []
     hillDocs = db.get_all([db.document(ref) for ref in references])
@@ -77,6 +83,7 @@ def getHills(references: list[str]) -> list[Hill]:
         hillData = hillDoc.to_dict()
         hillList.append(Hill(id=hillDoc.id, **hillData))
     return hillList
+
 
 def deleteHillsField(fieldName: str) -> None:
     hillDocs = db.collection('hills').stream()

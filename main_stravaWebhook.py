@@ -8,8 +8,8 @@ import requests
 executor = concurrent.futures.ThreadPoolExecutor()
 settings = config.getConfig()
 
-def callProcessActivity(activityID: int):
-    url = f"{settings.google_functions_url}/processActivity?activityID={activityID}"
+def callProcessActivity(activityID: int, athleteID: int):
+    url = f"{settings.google_functions_url}/processActivity?activityID={activityID}&?athleteID={athleteID}"
     requests.request("POST", url)
 
 
@@ -25,7 +25,9 @@ def hello_http(request: Request) -> Response:
         if request_json['object_type'] == 'activity':
             
             activityID = request_json['object_id']
-            future = executor.submit(callProcessActivity, activityID)
+            athleteID = request_json['owner_id']
+
+            _ = executor.submit(callProcessActivity, activityID, athleteID)
         
             return f"Processing activity {activityID}", 200
         

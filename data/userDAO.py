@@ -2,6 +2,7 @@ from dataclasses import dataclass, asdict
 from utils.decorators import trim
 from data.config import db
 from data.hillsDAO import getHillList, HillList, Hill
+from google.cloud.firestore import DocumentReference
 
 @trim
 @dataclass
@@ -10,13 +11,71 @@ class User:
     email: str
     athlete_id: int
     hill_lists: list[HillList]
+
+    def getAllHills(self) -> list[Hill]:
+        seenIds: set[str] = set()
+        distinctHills = [
+            hill for hill_list in self.hill_lists
+            for hill in hill_list.hills
+            if hill.id not in seenIds and not seenIds.add(hill.id)
+        ]
+        return list(distinctHills)
     
+    
+    def _update_completed_hills(self, hillIds: list[str], modify_func) -> None:
+        user_doc = db.collection('users').document(self.id)
 
-def getUser(userId: str, updateHillCounts: bool = False) -> User:
-    hill_lists: list[HillList] = []
+        user_data = user_doc.get().to_dict()
 
+        completed_hills: list[str] = user_data.get('completed_hills', {})
+
+        for hillId in hillIds:
+            modify_func(completed_hills, hillId)
+
+        user_doc.update({
+            'completed_hills': completed_hills
+        })
+
+        updated_user = getUser(userId=self.id, updateHillCounts=True)
+        self.hill_lists = updated_user.hill_lists
+
+
+    def recordCompletedHills(self, hillIds: list[str], activityId: int, user_data: dict = None) -> None:
+        def add_hill(completed_hills: list[str], hillId: str):
+            completed_hills[hillId] = activityId
+
+        self._update_completed_hills(hillIds, add_hill)
+
+
+    def deleteCompletedHills(self, hillIds: list[str]) -> None:
+        def remove_hill(completed_hills: list[str], hillId: str):
+            completed_hills.pop(hillId, None)
+
+        self._update_completed_hills(hillIds, remove_hill)
+
+
+
+def getRawUserData(*, userId: str = None, athleteId: int = None) -> tuple[str | None, DocumentReference | None, dict | None]:
+    if not userId:
+        query = db.collection('users').where('athlete_id', '==', athleteId)
+        results = query.get()
+        if results:
+            userId = results[0].id
+    
+    if not userId:
+        return None, None, None
+    
     user_doc = db.collection('users').document(userId)
     user_data = user_doc.get().to_dict()
+    
+    return userId, user_doc, user_data
+
+
+def getUser(*, userId: str = None, athleteId: int = None, updateHillCounts: bool = False) -> User | None:
+    hill_lists: list[HillList] = []
+
+    userId, user_doc, user_data = getRawUserData(userId=userId, athleteId=athleteId)
+
     user_data_hill_lists = user_data.pop('hill_lists')
 
     for hill_list in user_data_hill_lists:
@@ -36,7 +95,9 @@ def getUser(userId: str, updateHillCounts: bool = False) -> User:
     if updateHillCounts:
         counts = {}
         for hill_list in hill_lists:
-            counts[hill_list.id] = len([hill for hill in hill_list.hills if hill.done])
+            count = len([hill for hill in hill_list.hills if hill.done])
+            counts[hill_list.id] = count
+            hill_list.numberCompleted = count
         
         for hill_list in user_data_hill_lists:
             hill_list['numberCompleted'] = counts[hill_list['list'].id]
@@ -46,6 +107,7 @@ def getUser(userId: str, updateHillCounts: bool = False) -> User:
         })
 
     return User(id=userId, hill_lists=hill_lists, **user_data)
+
 
 def getUserHillList(userId: str, listId: str) -> HillList | None:
     user_doc = db.collection('users').document(userId)
@@ -74,26 +136,6 @@ def getUserHillList(userId: str, listId: str) -> HillList | None:
     userHillList_dict = asdict(userHillList)
     userHillList_dict.pop('hills')
     return HillList(hills= userHillList.hills, **userHillList_dict)
-
-
-def recordCompletedHills(userId: str, hillIds: list[str], activityId: int, user_data: dict = None) -> User:
-    user_doc = db.collection('users').document(userId)
-
-    if not user_data:
-        user_data = user_doc.get().to_dict()
-
-    completed_hills = {}
-    if 'completed_hills' in user_data.keys():
-        completed_hills = user_data['completed_hills']
-
-    for hillId in hillIds:
-        completed_hills[hillId] = activityId
-
-    user_doc.update({
-        'completed_hills': completed_hills
-    })
-
-    return getUser(userId, updateHillCounts=True)
 
 
 def importCompletedHills(userId: str) -> None:

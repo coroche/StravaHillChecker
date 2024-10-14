@@ -1,11 +1,40 @@
-from  library import StravaAPI
+from library import StravaAPI
 from Tests import testdata
 from data import config
+from pytest import fixture
+from pytest_mock import MockerFixture
+from requests import Response
+import json
 
 data = testdata.getTestData()
 settings = config.getConfig()
 
-def test_getLoggedInAthlete():
+def mock_response(url, status_code=200, content=None, json_data=None):
+    response = Response()
+    response.status_code = status_code
+    response.url = url
+    if json_data is not None:
+        response._content = json.dumps(json_data).encode('utf-8')
+    elif content is not None:
+        response._content = content.encode('utf-8')
+    return response
+
+
+mock_responses = {
+    'https://www.strava.com/api/v3/athlete': mock_response(url='https://www.strava.com/api/v3/athlete', json_data={"id":43044719,"username":None,"firstname":"Cormac","lastname":"Roche"}),
+    'https://example.com/api/resource2': {'data': 'response for resource2'},
+}
+
+def mock_request_side_effect(method, url, **kwargs):
+    return mock_responses.get(url, {'error': 'not found'})
+
+@fixture
+def mock_request(mocker: MockerFixture):
+    mocked_request = mocker.patch('library.StravaAPI.requests.request')
+    mocked_request.side_effect = mock_request_side_effect
+    return mocked_request
+
+def test_getLoggedInAthlete(mock_request):
     athlete = StravaAPI.getLoggedInAthlete()
     assert athlete
     assert athlete.fullname == 'CormacRoche'

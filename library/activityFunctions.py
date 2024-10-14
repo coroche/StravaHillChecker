@@ -4,14 +4,14 @@ import utm
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timezone
-from data import config
+from data import config, userDAO, hillsDAO
 from typing import List, Dict
 from library.smtp import sendEmails, Email
 
 
 settings = config.getConfig()
 
-def isHillBagged(hill: googleSheetsAPI.Hill, points: np.ndarray, n: int) -> bool:
+def isHillBagged(hill: hillsDAO.Hill, points: np.ndarray, n: int) -> bool:
     lat_diffs = np.abs(points[0] - hill.latitude)
     lon_diffs = np.abs(points[1] - hill.longitude)
 
@@ -19,7 +19,7 @@ def isHillBagged(hill: googleSheetsAPI.Hill, points: np.ndarray, n: int) -> bool
     return matches.any()
 
 
-def checkActivityForHills(activityID: int, allHills: List[googleSheetsAPI.Hill], plot: bool = False, n: int = 1) -> tuple[List[googleSheetsAPI.Hill], List[googleSheetsAPI.Hill]]:    
+def checkActivityForHills(activityID: int, allHills: List[hillsDAO.Hill], plot: bool = False, n: int = 1) -> List[hillsDAO.Hill]:    
     stream = StravaAPI.getActivityStreams(activityID, ['latlng'])[0]
     streamLatLng = np.array(stream.data)
     lat = streamLatLng[:,0][0::n]
@@ -54,7 +54,7 @@ def checkActivityForHills(activityID: int, allHills: List[googleSheetsAPI.Hill],
 
 
 
-def populateDescription(activityID: int, hills: List[googleSheetsAPI.Hill], custom_description: str = ""):
+def populateDescription(activityID: int, hills: List[hillsDAO.Hill], custom_description: str = ""):
         hillNames = '\n'.join(['✅ ' + hill.name for hill in hills])
         description = '\n'.join([custom_description, 'VLs:', hillNames, settings.dashboard_url])
         
@@ -69,15 +69,14 @@ def updateAllDescriptions():
         processActivity(activityID)
 
 
-def getSheetsHillList(service: googleSheetsAPI.Resource) -> List[googleSheetsAPI.Hill]:
+def getSheetsHillList(service: googleSheetsAPI.Resource) -> List[hillsDAO.Hill]:
     scriptID = settings.google_script_ID
     hillList = googleSheetsAPI.getPeaks(scriptID, service)
     return hillList
 
 
-def processActivity(activityID: int, ignoreTimeDiff: bool = False) -> tuple[bool, List[googleSheetsAPI.Hill]]:  
-    googleService = googleSheetsAPI.getService()
-    allHills = getSheetsHillList(googleService)
+def processActivity(activityID: int, user: userDAO.User, ignoreTimeDiff: bool = False) -> tuple[bool, List[hillsDAO.Hill]]:  
+    allHills = user.getAllHills()
     activity = StravaAPI.getActivityById(activityID)
 
     activity.hills = checkActivityForHills(activityID, allHills, plot=False, n=1)
@@ -90,8 +89,7 @@ def processActivity(activityID: int, ignoreTimeDiff: bool = False) -> tuple[bool
     populateDescription(activityID, activity.hills, custom_description = activity.custom_description)
 
     hillIDs = [hill.id for hill in activity.hills]
-    googleSheetsAPI.markAsDone(settings.google_script_ID, googleService, hillIDs, activity.activity_date_local, activityID)
-
+    user.recordCompletedHills(hillIDs, activityID)
     timeDiff = datetime.now(timezone.utc) - activity.activity_date_utc
     
     if not activity.private and (timeDiff.days <= 7 or ignoreTimeDiff):
@@ -99,7 +97,7 @@ def processActivity(activityID: int, ignoreTimeDiff: bool = False) -> tuple[bool
 
     return True, activity.hills
 
-def sendActivityNotificationEmails(activity: StravaAPI.Activity, allHills: List[googleSheetsAPI.Hill]):   
+def sendActivityNotificationEmails(activity: StravaAPI.Activity, allHills: List[hillsDAO.Hill]):   
     notifications = config.getActivityNotifications(activity.id)
     mailingList = config.getMailingList()
     html_content = config.getHTMLTemplate('Email.html')
@@ -119,7 +117,7 @@ def sendActivityNotificationEmails(activity: StravaAPI.Activity, allHills: List[
 
 
    
-def composeMail(html_content: str, activity: StravaAPI.Activity, allHills: List[googleSheetsAPI.Hill]) -> str:   
+def composeMail(html_content: str, activity: StravaAPI.Activity, allHills: List[hillsDAO.Hill]) -> str:   
     backgroundImg = StravaAPI.getPrimaryActivityPhoto(activity.id)
 
     done = len([hill for hill in allHills if hill.done])

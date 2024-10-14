@@ -127,7 +127,7 @@ def getLoggedInAthlete() -> Athlete:
 
 
 def getActivities(per_page: int, page: int) -> List[Activity]:
-    url = settings.base_url + "/athlete/activities"
+    url = f"{settings.base_url}/athlete/activities"
     headers = {'Authorization': 'Bearer ' + settings.access_token}
     params = {
         'per_page': str(per_page),
