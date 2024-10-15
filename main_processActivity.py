@@ -17,17 +17,21 @@ def hello_http(request: Request) -> tuple[Response, HTTPStatus]:
             activityID = int(request.args.get('activityID'))
             athleteID = int(request.args.get('athleteID'))
         except (TypeError, ValueError):
-            return jsonify({"error": "No valid activityID or athleteID supplied"}), HTTPStatus.BAD_REQUEST      
+            return jsonify({"error": "Valid activityID and athleteID not supplied"}), HTTPStatus.BAD_REQUEST      
         
+        deleteActivity = request.args.get('deleteActivity', '', str).lower() == 'true'
+        user = userDAO.getUser(athleteId=athleteID)
         lastParsedActivity = config.get('last_parsed_activity')
 
-        user = userDAO.getUser(athleteId=athleteID)
+        if deleteActivity:
+            user.deleteActivity(activityID)
+            return jsonify({"ActivityID": activityID, "message": "Activity removed from completed hills list"}), HTTPStatus.OK
 
         if activityID == 0: #Process latest activity 
             activity = getActivities(user, 1, 1)[0]
             
             if activity.id == lastParsedActivity:
-                return jsonify({"ActivityID": activity.id, "message": "Latest activity already processed"}), 200
+                return jsonify({"ActivityID": activity.id, "message": "Latest activity already processed"}), HTTPStatus.OK
             
         else:
             activity = getActivityById(user, activityID)

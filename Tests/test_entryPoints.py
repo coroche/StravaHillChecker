@@ -14,9 +14,8 @@ from unittest.mock import MagicMock
 from Tests.testdata import getTestData
 
 testData = getTestData()
-
-app = Flask(__name__)
 settings = config.getConfig()
+app = Flask(__name__)
 
 
 @fixture(autouse=True)
@@ -29,6 +28,11 @@ def mock_processActivity(mocker: MockerFixture) -> MagicMock:
     mocked_ProcessActivity.side_effect = lambda activityId, _: {
             12345: (True, hills)
         }.get(activityId, None) 
+    return mocked_ProcessActivity
+
+@fixture(autouse=True)
+def mock_deleteActivity(mocker: MockerFixture) -> MagicMock:
+    mocked_ProcessActivity = mocker.patch('data.userDAO.User.deleteActivity')
     return mocked_ProcessActivity
 
 
@@ -69,11 +73,10 @@ def mock_deleteRecipient(mocker: MockerFixture):
     return mocked_DeleteRecipient
 
 
-@fixture(autouse=True)
+@fixture(autouse=True, scope="function")
 def mock_processActivityFromWebhookListener(mocker: MockerFixture):
     mocked_ProcessActivity = mocker.patch('main_stravaWebhook.callProcessActivity')
     return mocked_ProcessActivity
-
 
 
 def create_sample_request(method='GET', path='/sample', data=None, params=None):
@@ -83,13 +86,36 @@ def create_sample_request(method='GET', path='/sample', data=None, params=None):
     return request
 
 
+
 def test_webhookListener(mock_processActivityFromWebhookListener: MagicMock):
     with app.test_request_context('/stravaWebhook'):       
-        request = create_sample_request(method='POST', data={'object_type':'activity', 'object_id':12345, "owner_id": 54321})
-        response = main_stravaWebhook.hello_http(request)
+        request = create_sample_request(method='POST', data={"aspect_type": "create", 'object_id':12345, 'object_type':'activity', "owner_id": 54321})
+        response = main_stravaWebhook.hello_http(request, testMode=True)
         assert response == ('Processing activity 12345', 200)
         assert mock_processActivityFromWebhookListener.call_count == 1
         assert mock_processActivityFromWebhookListener.call_args.args == (12345,54321)
+        mock_processActivityFromWebhookListener.reset_mock()
+
+
+def test_webhookListenerPrivateActivity(mock_processActivityFromWebhookListener: MagicMock):
+    with app.test_request_context('/stravaWebhook'):       
+        request = create_sample_request(method='POST', data={"aspect_type": "update","object_id": 12345,"object_type": "activity","owner_id": 54321,"updates": {"private": "true"}})
+        response = main_stravaWebhook.hello_http(request, testMode=True)
+        assert response == ('Removing activity 12345', 200)
+        assert mock_processActivityFromWebhookListener.call_count == 1
+        assert mock_processActivityFromWebhookListener.call_args.args == (12345,54321)
+        assert mock_processActivityFromWebhookListener.call_args.kwargs == {'deleteActivity': True}
+        mock_processActivityFromWebhookListener.reset_mock()
+
+def test_webhookListenerDeletedActivity(mock_processActivityFromWebhookListener: MagicMock):
+    with app.test_request_context('/stravaWebhook'):       
+        request = create_sample_request(method='POST', data={"aspect_type": "delete","object_id": 12345,"object_type": "activity","owner_id": 54321})
+        response = main_stravaWebhook.hello_http(request, testMode=True)
+        assert response == ('Removing activity 12345', 200)
+        assert mock_processActivityFromWebhookListener.call_count == 1
+        assert mock_processActivityFromWebhookListener.call_args.args == (12345,54321)
+        assert mock_processActivityFromWebhookListener.call_args.kwargs == {'deleteActivity': True}
+        mock_processActivityFromWebhookListener.reset_mock()
 
 
 def test_webhookVerification():
@@ -117,6 +143,18 @@ def test_processActivity(mock_processActivity: MagicMock):
 
     user = userDAO.getUser(userId=testData.UserId)
     assert mock_processActivity.call_args.args == (12345, user)
+
+
+def test_DeleteActivity(mock_deleteActivity: MagicMock):
+    with app.test_request_context('/processActivity'):  
+        request = create_sample_request(method='POST', params=f'activityID=12345&athleteID={testData.AthleteId}&deleteActivity=true')
+        response, status_code = main_processActivity.hello_http(request)
+    
+    assert status_code == 200
+    assert response.json['ActivityID'] == 12345
+    assert response.json['message'] == 'Activity removed from completed hills list'
+    assert mock_deleteActivity.call_count == 1
+    assert mock_deleteActivity.call_args.args == (12345,)
 
 
 def test_processLatestActivity(mock_processActivity: MagicMock, mock_writeConfig: MagicMock):

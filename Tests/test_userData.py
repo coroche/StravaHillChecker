@@ -65,3 +65,20 @@ def test_updateStravaTokens():
 
     user.updateStravaTokens('123ABC', 'ABC123')
 
+
+def test_deleteActivity():
+    user = userDAO.getUser(userId=testData.TestUserId)
+    user.recordCompletedHills([testData.HillID, testData.HillID2], 12345)
+    user.recordCompletedHills([testData.HillID3], 54321)
+    assert user.hill_lists[0].numberCompleted == 3
+
+    user.deleteActivity(12345)
+    assert user.hill_lists[0].numberCompleted == 1
+    _, _, user_data = userDAO.getRawUserData(userId=testData.TestUserId)
+    assert len(user_data['completed_hills']) == 1
+
+    user.deleteCompletedHills([testData.HillID3])
+    assert user.hill_lists[0].numberCompleted == 0
+
+      
+

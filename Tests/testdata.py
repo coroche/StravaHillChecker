@@ -15,6 +15,7 @@ class TestData:
     StravaName: str
     HillID: str
     HillID2: str
+    HillID3: str
     HillListID: str
     HillListName: str
     HillListCount: int

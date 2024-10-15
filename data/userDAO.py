@@ -30,7 +30,7 @@ class User:
 
         user_data = user_doc.get().to_dict()
 
-        completed_hills: list[str] = user_data.get('completed_hills', {})
+        completed_hills: dict[str, int] = user_data.get('completed_hills', {})
 
         for hillId in hillIds:
             modify_func(completed_hills, hillId)
@@ -44,7 +44,7 @@ class User:
 
 
     def recordCompletedHills(self, hillIds: list[str], activityId: int, user_data: dict = None) -> None:
-        def add_hill(completed_hills: list[str], hillId: str):
+        def add_hill(completed_hills: dict[str, int], hillId: str):
             completed_hills[hillId] = activityId
 
         self._update_completed_hills(hillIds, add_hill)
@@ -56,6 +56,20 @@ class User:
 
         self._update_completed_hills(hillIds, remove_hill)
 
+
+    def deleteActivity(self, activityToDelete: int) -> None:
+        user_doc = db.collection('users').document(self.id)
+        user_data = user_doc.get().to_dict()
+        completed_hills: dict[str, int] = user_data.get('completed_hills', {})
+        completed_hills = {hillId: activityId for hillId, activityId in completed_hills.items() if activityId != activityToDelete}
+        
+        user_doc.update({
+            'completed_hills': completed_hills
+        })
+
+        updated_user = getUser(userId=self.id, updateHillCounts=True)
+        self.hill_lists = updated_user.hill_lists
+        
 
     def updateStravaTokens(self, access_token, refresh_token) -> None:
         self.strava_access_token = access_token
