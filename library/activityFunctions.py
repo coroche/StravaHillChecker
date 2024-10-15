@@ -19,8 +19,8 @@ def isHillBagged(hill: hillsDAO.Hill, points: np.ndarray, n: int) -> bool:
     return matches.any()
 
 
-def checkActivityForHills(activityID: int, allHills: List[hillsDAO.Hill], plot: bool = False, n: int = 1) -> List[hillsDAO.Hill]:    
-    streams = StravaAPI.getActivityStreams(activityID, ['latlng'])
+def checkActivityForHills(user: userDAO.User, activityID: int, allHills: List[hillsDAO.Hill], plot: bool = False, n: int = 1) -> List[hillsDAO.Hill]:    
+    streams = StravaAPI.getActivityStreams(user, activityID, ['latlng'])
     if not streams:
         return []
     
@@ -57,15 +57,15 @@ def checkActivityForHills(activityID: int, allHills: List[hillsDAO.Hill], plot: 
     return hills
 
 
-
-def populateDescription(activityID: int, hills: List[hillsDAO.Hill], custom_description: str = ""):
+def populateDescription(user: userDAO.User, activityID: int, hills: List[hillsDAO.Hill], custom_description: str = ""):
         hillNames = '\n'.join(['✅ ' + hill.name for hill in hills])
         description = '\n'.join([custom_description, 'VLs:', hillNames, settings.dashboard_url])
         
-        StravaAPI.updateActivityDescription(activityID, description)
+        StravaAPI.updateActivityDescription(user, activityID, description)
 
-def updateAllDescriptions():
-    activities = StravaAPI.getActivities(20, 1)
+
+def updateAllDescriptions(user: userDAO.User):
+    activities = StravaAPI.getActivities(user, 20, 1)
     hikes = [activity for activity in activities if activity.sport_type  in ['Hike', 'Walk', 'Run', 'Trail Run']]
     activityIDs = [hike.id for hike in hikes]
 
@@ -81,31 +81,32 @@ def getSheetsHillList(service: googleSheetsAPI.Resource) -> List[hillsDAO.Hill]:
 
 def processActivity(activityID: int, user: userDAO.User, ignoreTimeDiff: bool = False) -> tuple[bool, List[hillsDAO.Hill]]:  
     allHills = user.getAllHills()
-    activity = StravaAPI.getActivityById(activityID)
+    activity = StravaAPI.getActivityById(user, activityID)
 
-    activity.hills = checkActivityForHills(activityID, allHills, plot=False, n=1)
+    activity.hills = checkActivityForHills(user, activityID, allHills, plot=False, n=1)
     
 
     if not activity.hills:
         return False, activity.hills
     
     
-    populateDescription(activityID, activity.hills, custom_description = activity.custom_description)
+    populateDescription(user, activityID, activity.hills, custom_description = activity.custom_description)
 
     hillIDs = [hill.id for hill in activity.hills]
     user.recordCompletedHills(hillIDs, activityID)
     timeDiff = datetime.now(timezone.utc) - activity.activity_date_utc
     
-    if not activity.private and (timeDiff.days <= 7 or ignoreTimeDiff):
-        sendActivityNotificationEmails(activity, allHills)
+    if not activity.private and (timeDiff.days <= 7 or ignoreTimeDiff) and user.athlete_id == 43044719: #Emails for me, not for thee
+        sendActivityNotificationEmails(user, activity, allHills)
 
     return True, activity.hills
 
-def sendActivityNotificationEmails(activity: StravaAPI.Activity, allHills: List[hillsDAO.Hill]):   
+def sendActivityNotificationEmails(user: userDAO.User, activity: StravaAPI.Activity, allHills: List[hillsDAO.Hill]):   
     notifications = config.getActivityNotifications(activity.id)
     mailingList = config.getMailingList()
     html_content = config.getHTMLTemplate('Email.html')
-    html_content = composeMail(html_content, activity, allHills)
+    backgroundImg = StravaAPI.getPrimaryActivityPhoto(user, activity.id)
+    html_content = composeMail(html_content, activity, allHills, backgroundImg)
     
     emails: List[Email] = []
     for recipient in mailingList:
@@ -121,8 +122,7 @@ def sendActivityNotificationEmails(activity: StravaAPI.Activity, allHills: List[
 
 
    
-def composeMail(html_content: str, activity: StravaAPI.Activity, allHills: List[hillsDAO.Hill]) -> str:   
-    backgroundImg = StravaAPI.getPrimaryActivityPhoto(activity.id)
+def composeMail(html_content: str, activity: StravaAPI.Activity, allHills: List[hillsDAO.Hill], backgroundImg: str) -> str:   
 
     done = len([hill for hill in allHills if hill.done])
     togo = len([hill for hill in allHills if not hill.done])
@@ -150,6 +150,7 @@ def composeFollowupEmail(html_content: str, activityID: int) -> str:
 
 
 def bullyRecipients():
+    user = userDAO.getUser(athleteId=43044719)
     notifications = config.getUnkudosedNotifications()
     grouped_by_activity: Dict[int, List[config.Notification]] = {}
     emails: List[Email] = []
@@ -159,10 +160,10 @@ def bullyRecipients():
         grouped_by_activity[notification.activity_id].append(notification)
     
     for activityID, notifications in grouped_by_activity.items():
-        activity = StravaAPI.getActivityById(activityID)
+        activity = StravaAPI.getActivityById(user, activityID)
         timeDiff = datetime.now(timezone.utc) - activity.activity_date_utc
         if not activity.private:
-            kudoers = StravaAPI.getActivityKudoers(activityID, activity.kudos_count)
+            kudoers = StravaAPI.getActivityKudoers(user, activityID, activity.kudos_count)
             html_content = config.getHTMLTemplate('FollowUpEmail.html')
             html_content = composeFollowupEmail(html_content, activityID)
             for notification in notifications:

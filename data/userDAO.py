@@ -12,6 +12,8 @@ class User:
     email: str
     athlete_id: int
     hill_lists: list[HillList]
+    strava_access_token: str
+    strava_refresh_token: str
 
     def getAllHills(self) -> list[Hill]:
         seenIds: set[str] = set()
@@ -53,6 +55,17 @@ class User:
             completed_hills.pop(hillId, None)
 
         self._update_completed_hills(hillIds, remove_hill)
+
+
+    def updateStravaTokens(self, access_token, refresh_token) -> None:
+        self.strava_access_token = access_token
+        self.strava_refresh_token = refresh_token
+        
+        user_doc = db.collection('users').document(self.id)
+        user_doc.update({
+            'strava_access_token': access_token,
+            'strava_refresh_token': refresh_token
+        })
 
 
 

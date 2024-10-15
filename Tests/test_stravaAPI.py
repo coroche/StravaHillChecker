@@ -1,13 +1,16 @@
 from library import StravaAPI
 from Tests import testdata
-from data import config
+from data import config, userDAO
 from pytest import fixture
 from pytest_mock import MockerFixture
 from requests import Response
 import json
+from unittest.mock import MagicMock
+
 
 data = testdata.getTestData()
 settings = config.getConfig()
+user = userDAO.getUser(userId=data.UserId)
 
 def mock_response(url, status_code=200, content=None, json_data=None):
     response = Response()
@@ -34,13 +37,14 @@ def mock_request(mocker: MockerFixture):
     mocked_request.side_effect = mock_request_side_effect
     return mocked_request
 
-def test_getLoggedInAthlete(mock_request):
-    athlete = StravaAPI.getLoggedInAthlete()
+def test_getLoggedInAthlete(mock_request: MagicMock):
+    athlete = StravaAPI.getLoggedInAthlete(user)
     assert athlete
     assert athlete.fullname == 'CormacRoche'
+    assert mock_request.call_count == 1
 
 def test_getActivities():
-    activities = StravaAPI.getActivities(20, 1)
+    activities = StravaAPI.getActivities(user, 20, 1)
     assert activities
     assert all([isinstance(activity, StravaAPI.Activity) for activity in activities])
     for activity in activities:
@@ -48,45 +52,45 @@ def test_getActivities():
             assert value is not None, f"Attribute '{attr}' has no value in {activity}"
 
 def test_getActivityById():
-    activity = StravaAPI.getActivityById(data.ActivityWithHills)
+    activity = StravaAPI.getActivityById(user, data.ActivityWithHills)
     assert activity.id == data.ActivityWithHills
     for attr, value in activity.__dict__.items():
         assert value is not None, f"Attribute '{attr}' has no value in {activity}"
 
 def test_getActivityStreams():
-    streams = StravaAPI.getActivityStreams(data.ActivityWithHills, ['latlng'])
+    streams = StravaAPI.getActivityStreams(user, data.ActivityWithHills, ['latlng'])
     assert streams
     stream = streams[0]
     assert stream.type == 'latlng'
     assert stream.data
 
 def test_getPrimaryActivityPhoto_activityWithPhoto():
-    photoUrl = StravaAPI.getPrimaryActivityPhoto(data.ActivityWithHills)
+    photoUrl = StravaAPI.getPrimaryActivityPhoto(user, data.ActivityWithHills)
     assert photoUrl
     assert photoUrl != settings.default_email_image
     
 def test_getPrimaryActivityPhoto_activityWithoutPhoto():
-    photoUrl = StravaAPI.getPrimaryActivityPhoto(data.ActivityWithoutHills)
+    photoUrl = StravaAPI.getPrimaryActivityPhoto(user, data.ActivityWithoutHills)
     assert photoUrl == settings.default_email_image
 
 def test_getActivityKudoers_WithKudos():
-    activity = StravaAPI.getActivityById(data.ActivityWithHills)
+    activity = StravaAPI.getActivityById(user, data.ActivityWithHills)
     assert activity.kudos_count != 0
-    kudoers = StravaAPI.getActivityKudoers(activity.id, activity.kudos_count)
+    kudoers = StravaAPI.getActivityKudoers(user, activity.id, activity.kudos_count)
     assert kudoers
 
 def test_getActivityKudoers_WithoutKudos():
-    activity = StravaAPI.getActivityById(data.ActivityWithoutHills)
+    activity = StravaAPI.getActivityById(user, data.ActivityWithoutHills)
     assert activity.kudos_count == 0
-    kudoers = StravaAPI.getActivityKudoers(activity.id, activity.kudos_count)
+    kudoers = StravaAPI.getActivityKudoers(user, activity.id, activity.kudos_count)
     assert not kudoers
 
 def test_updateActivityDescription():
-    activity = StravaAPI.getActivityById(data.ActivityWithHills)
+    activity = StravaAPI.getActivityById(user, data.ActivityWithHills)
     oldDescription = activity.description
-    activity = StravaAPI.updateActivityDescription(activity.id, "This is a test")
+    activity = StravaAPI.updateActivityDescription(user, activity.id, "This is a test")
     assert activity.description == "This is a test"
-    activity = StravaAPI.updateActivityDescription(activity.id, oldDescription)
+    activity = StravaAPI.updateActivityDescription(user, activity.id, oldDescription)
     assert activity.description == oldDescription
 
 def test_getSubscriptions():

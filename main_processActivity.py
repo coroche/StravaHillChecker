@@ -24,13 +24,13 @@ def hello_http(request: Request) -> tuple[Response, HTTPStatus]:
         user = userDAO.getUser(athleteId=athleteID)
 
         if activityID == 0: #Process latest activity 
-            activity = getActivities(1,1)[0]
+            activity = getActivities(user, 1, 1)[0]
             
             if activity.id == lastParsedActivity:
                 return jsonify({"ActivityID": activity.id, "message": "Latest activity already processed"}), 200
             
         else:
-            activity = getActivityById(activityID)
+            activity = getActivityById(user, activityID)
             if not activity:
                 return jsonify({"error": f"Activity {activityID} not found"}), HTTPStatus.NOT_FOUND
 

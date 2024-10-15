@@ -46,5 +46,22 @@ def test_markHillsCompleted():
     assert len(user_data['completed_hills']) == 0
 
 
+def test_updateStravaTokens():
+    user = userDAO.getUser(userId=testData.TestUserId)
+    assert user.strava_access_token == '123ABC'
+    assert user.strava_refresh_token == 'ABC123'
+
+    user.updateStravaTokens('NewAccessToken', 'NewRefreshToken')
     
+    #Assert object values have been updated
+    assert user.strava_access_token == 'NewAccessToken'
+    assert user.strava_refresh_token == 'NewRefreshToken'
+    
+    #Assert db values have been updated
+    user = None
+    user = userDAO.getUser(userId=testData.TestUserId)
+    assert user.strava_access_token == 'NewAccessToken'
+    assert user.strava_refresh_token == 'NewRefreshToken'
+
+    user.updateStravaTokens('123ABC', 'ABC123')
 

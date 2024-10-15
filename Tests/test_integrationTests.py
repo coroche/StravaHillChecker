@@ -23,7 +23,7 @@ def test_processActivityWithHills():
     assert hasHills
     hillNames = [x.name for x in hills]
     assert Counter(hillNames) == Counter(testData.Hills)
-    activity = StravaAPI.getActivityById(testData.ActivityWithHills)
+    activity = StravaAPI.getActivityById(user, testData.ActivityWithHills)
     for hillName in testData.Hills:
         assert hillName in activity.description
 

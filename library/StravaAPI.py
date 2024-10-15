@@ -1,6 +1,7 @@
 import requests
 import json
 from data import config
+from data.userDAO import User
 from typing import List
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -83,67 +84,60 @@ class ActivityPhoto:
 
 settings = config.getConfig()
 
-def makeRequest(method: str, url: str, **kwargs) -> requests.Response:
+def makeRequest(method: str, url: str, user: User, **kwargs) -> requests.Response:
     response = requests.request(method, url, **kwargs)
     if response.status_code == 401:
-        refreshTokens()
-        kwargs['headers']['Authorization'] = 'Bearer ' + settings.access_token
+        tokens = getNewTokens(user)
+        user.updateStravaTokens(tokens.access_token, tokens.refresh_token)
+        kwargs['headers']['Authorization'] = 'Bearer ' + user.strava_access_token
         response = requests.request(method, url, **kwargs)
     return response
 
 
-def writeTokens():
-    config.write('access_token', settings.access_token)
-    config.write('refresh_token', settings.refresh_token)
-
-
-def refreshTokens():
+def getNewTokens(user: User) -> TokenResponse:
     url = settings.base_url + "/oauth/token"
 
     payload={
         'client_id': settings.client_id,
         'client_secret': settings.client_secret,
         'grant_type': 'refresh_token',
-        'refresh_token': settings.refresh_token
+        'refresh_token': user.strava_refresh_token
     }
 
     response = requests.request("POST", url, data=payload)
     token_data = json.loads(response.text)
     tokens = TokenResponse(**token_data)
     
-    settings.access_token = tokens.access_token
-    settings.refresh_token = tokens.refresh_token
+    return tokens
+    
 
-    writeTokens()
-
-
-def getLoggedInAthlete() -> Athlete:
+def getLoggedInAthlete(user: User) -> Athlete:
     url = settings.base_url + "/athlete"
-    headers = {'Authorization': 'Bearer ' + settings.access_token}
+    headers = {'Authorization': 'Bearer ' + user.strava_access_token}
 
-    response = makeRequest("GET", url, headers=headers)
+    response = makeRequest("GET", url, user, headers=headers)
     athlete_data: dict = json.loads(response.text)
     return Athlete(**athlete_data)
 
 
-def getActivities(per_page: int, page: int) -> List[Activity]:
+def getActivities(user: User, per_page: int, page: int) -> List[Activity]:
     url = f"{settings.base_url}/athlete/activities"
-    headers = {'Authorization': 'Bearer ' + settings.access_token}
+    headers = {'Authorization': 'Bearer ' + user.strava_access_token}
     params = {
         'per_page': str(per_page),
         'page': str(page)
     }
 
-    response = makeRequest("GET", url, headers=headers, params=params)
+    response = makeRequest("GET", url, user, headers=headers, params=params)
     activity_list: List[Activity] = [Activity(**activity_data) for activity_data in json.loads(response.text)]
     return activity_list
 
 
-def getActivityById(activityID: int) -> Activity | None:
+def getActivityById(user: User, activityID: int) -> Activity | None:
     url = f"{settings.base_url}/activities/{activityID}"
-    headers = {'Authorization': 'Bearer ' + settings.access_token}
+    headers = {'Authorization': 'Bearer ' + user.strava_access_token}
 
-    response = makeRequest("GET", url, headers=headers)
+    response = makeRequest("GET", url, user, headers=headers)
     if response.status_code == 404:
         return None
     activity_json: dict = json.loads(response.text)
@@ -151,26 +145,26 @@ def getActivityById(activityID: int) -> Activity | None:
     return activity
 
 
-def getActivityStreams(activityID: int, streamTypes: List[str]) -> List[Stream]:
+def getActivityStreams(user: User, activityID: int, streamTypes: List[str]) -> List[Stream]:
     url = f"{settings.base_url}/activities/{activityID}/streams"
     streamTypes_str = str(streamTypes).replace("'","").replace(" ","")[1:-1]
     
-    headers = {'Authorization': 'Bearer ' + settings.access_token}
+    headers = {'Authorization': 'Bearer ' + user.strava_access_token}
     params = {'keys': streamTypes_str}
 
-    response = makeRequest("GET", url, headers=headers, params=params)  
+    response = makeRequest("GET", url, user, headers=headers, params=params)  
     
     streams_list = [Stream(**stream_data) for stream_data in json.loads(response.text)]
     streams_list = [stream for stream in streams_list if stream.type in streamTypes]
     return streams_list
 
 
-def getPrimaryActivityPhoto(activityID: int) -> str:
+def getPrimaryActivityPhoto(user: User, activityID: int) -> str:
     url = f"{settings.base_url}/activities/{activityID}/photos"
-    headers = {'Authorization': 'Bearer ' + settings.access_token}
+    headers = {'Authorization': 'Bearer ' + user.strava_access_token}
     params = {'size': 5000}
 
-    response = makeRequest("GET", url, headers=headers, params=params)
+    response = makeRequest("GET", url, user, headers=headers, params=params)
     if response.status_code == 404:
         return settings.default_email_image
     
@@ -186,23 +180,23 @@ def getPrimaryActivityPhoto(activityID: int) -> str:
             return settings.default_email_image
 
 
-def getActivityKudoers(activityID: int, kudos_count: int) -> List[Athlete]:
+def getActivityKudoers(user: User, activityID: int, kudos_count: int) -> List[Athlete]:
     url = f"{settings.base_url}/activities/{activityID}/kudos"
     
-    headers = {'Authorization': 'Bearer ' + settings.access_token}
+    headers = {'Authorization': 'Bearer ' + user.strava_access_token}
     params = {'per_page': kudos_count}
 
-    response = makeRequest("GET", url, headers=headers, params=params)    
+    response = makeRequest("GET", url, user, headers=headers, params=params)    
     kudos_list = [Athlete(**kudos_data) for kudos_data in json.loads(response.text)]  
     return kudos_list
 
 
-def updateActivityDescription(activityID: int, description: str) -> Activity:
+def updateActivityDescription(user: User, activityID: int, description: str) -> Activity:
     url = settings.base_url + "/activities/" + str(activityID)
     payload = {'description': description}
-    headers = {'Authorization': 'Bearer ' + settings.access_token}
+    headers = {'Authorization': 'Bearer ' + user.strava_access_token}
     
-    response = makeRequest("PUT", url, headers=headers, data=payload)
+    response = makeRequest("PUT", url, user, headers=headers, data=payload)
 
     activity_json: dict = json.loads(response.text)
     activity = Activity(**activity_json)

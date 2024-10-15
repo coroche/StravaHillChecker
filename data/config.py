@@ -20,8 +20,6 @@ class Config:
     base_url: str
     client_id: str
     client_secret: str
-    access_token: str
-    refresh_token: str
     webhook_callback_url: str
     webhook_verify_token: str
     google_script_ID: str

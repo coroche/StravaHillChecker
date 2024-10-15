@@ -35,9 +35,9 @@ def mock_processActivity(mocker: MockerFixture) -> MagicMock:
 @fixture(autouse=True)
 def mock_getActivityByID(mocker: MockerFixture):
     mocked_GetActivity = mocker.patch('main_processActivity.getActivityById')
-    mocked_GetActivity.side_effect = lambda key: {
+    mocked_GetActivity.side_effect = lambda _, activityId: {
             12345: Activity(id=12345, name='Activity1', start_date='2000-01-01T00:00:00Z', start_date_local='2000-01-01T00:00:00Z', sport_type='Hike', distance=1000, moving_time=100, total_elevation_gain=1000, visibility='everyone', private=False, kudos_count=10)
-        }.get(key, None)
+        }.get(activityId, None)
     return mocked_GetActivity
 
 
