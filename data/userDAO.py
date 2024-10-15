@@ -3,6 +3,7 @@ from utils.decorators import trim
 from data import db
 from data.hillsDAO import getHillList, HillList, Hill
 from google.cloud.firestore import DocumentReference
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 @trim
 @dataclass
@@ -57,7 +58,7 @@ class User:
 
 def getRawUserData(*, userId: str = None, athleteId: int = None) -> tuple[str | None, DocumentReference | None, dict | None]:
     if not userId:
-        query = db.collection('users').where('athlete_id', '==', athleteId)
+        query = db.collection('users').where(filter=FieldFilter('athlete_id', '==', athleteId))
         results = query.get()
         if results:
             userId = results[0].id

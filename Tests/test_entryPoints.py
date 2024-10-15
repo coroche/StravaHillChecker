@@ -2,8 +2,8 @@ from flask import Flask, Request
 import main_stravaWebhook
 import main_processActivity
 import main_subscribe
-import main_getmap
-import main_getchart
+import main_getMap
+import main_getChart
 from werkzeug.test import EnvironBuilder
 from data import config, userDAO
 from library.googleSheetsAPI import Hill
@@ -153,25 +153,25 @@ def test_unsubscribe(mock_deleteRecipient: MagicMock):
         assert mock_deleteRecipient.call_args.args == ('123ABC',)
 
 def test_getMap():
-    with app.test_request_context('/getmap'):
+    with app.test_request_context('/getMap'):
         request = create_sample_request(params= f'UserId={testData.UserId}&ListId={testData.HillListID}')
-        response = main_getmap.gcf_entry_point(request)
+        response = main_getMap.gcf_entry_point(request)
         assert response
         assert response.status_code == 200
         assert '"PeakDoneIcon"' in str(response.data) or '"PeakIcon"' in str(response.data)
 
 def test_getDefaultMap():
-    with app.test_request_context('/getmap'):
+    with app.test_request_context('/getMap'):
         request = create_sample_request()
-        response = main_getmap.gcf_entry_point(request)
+        response = main_getMap.gcf_entry_point(request)
         assert response
         assert response.status_code == 200
         assert '"VLDoneIcon"' in str(response.data) or '"VLIcon"' in str(response.data)
 
 def test_getInvalidMap():
-    with app.test_request_context('/getmap'):
+    with app.test_request_context('/getMap'):
         request = create_sample_request(params= f'UserId={testData.UserId}&ListId={testData.HillListID}X')
-        response = main_getmap.gcf_entry_point(request)
+        response = main_getMap.gcf_entry_point(request)
         assert response
         assert response.status_code == 400
         assert 'Invalid parameters' in str(response.data)
@@ -179,7 +179,7 @@ def test_getInvalidMap():
 def test_getChart():
     with app.test_request_context('/getChart'):
         request = create_sample_request(params= f'UserId={testData.UserId}&ListId={testData.HillListID}')
-        response = main_getchart.gcf_entry_point(request)
+        response = main_getChart.gcf_entry_point(request)
         assert response
         assert response.status_code == 200
 
