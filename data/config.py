@@ -1,19 +1,15 @@
 import json
-import firebase_admin
-from firebase_admin import credentials, firestore
+from data import db
+from firebase_admin import firestore
 from dataclasses import dataclass, asdict
 from typing import List
 import os
 import uuid
-from google.cloud.firestore_v1.client import Client
 from google.cloud.firestore_v1.base_query import FieldFilter
 from utils.decorators import trim
 from datetime import datetime, timedelta, timezone
 
 
-cred = credentials.Certificate('data/firebaseServiceAccountKey.json')
-firebase_admin.initialize_app(cred)
-db: Client = firestore.client()
 config_doc_ref = db.collection('config').document('settings')
 credentials_doc_ref = db.collection('config').document('credentials')
 token_doc_ref = db.collection('config').document('token')

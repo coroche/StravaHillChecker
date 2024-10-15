@@ -1,6 +1,6 @@
 from dataclasses import dataclass, asdict
 from utils.decorators import trim
-from data.config import db
+from data import db
 from firebase_admin import firestore 
 
 
