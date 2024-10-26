@@ -4,6 +4,7 @@ from data import db
 from data.hillsDAO import getHillList, HillList, Hill
 from google.cloud.firestore import DocumentReference
 from google.cloud.firestore_v1.base_query import FieldFilter
+from datetime import datetime, timezone, timedelta
 
 @trim
 @dataclass
@@ -14,6 +15,7 @@ class User:
     hill_lists: list[HillList]
     strava_access_token: str
     strava_refresh_token: str
+    strava_token_expiry: datetime
 
     def getAllHills(self) -> list[Hill]:
         seenIds: set[str] = set()
@@ -71,14 +73,16 @@ class User:
         self.hill_lists = updated_user.hill_lists
         
 
-    def updateStravaTokens(self, access_token, refresh_token) -> None:
+    def updateStravaTokens(self, access_token, refresh_token, expires_in) -> None:
         self.strava_access_token = access_token
         self.strava_refresh_token = refresh_token
+        self.strava_token_expiry = (token_expiry:=datetime.now(timezone.utc) + timedelta(seconds=expires_in))
         
         user_doc = db.collection('users').document(self.id)
         user_doc.update({
             'strava_access_token': access_token,
-            'strava_refresh_token': refresh_token
+            'strava_refresh_token': refresh_token,
+            'strava_token_expiry':token_expiry
         })
 
 

@@ -4,7 +4,7 @@ from data import config
 from data.userDAO import User
 from typing import List
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from library.googleSheetsAPI import Hill
 from utils.decorators import trim
 
@@ -73,6 +73,7 @@ class Subscription:
 class TokenResponse:
     access_token: str
     refresh_token: str
+    expires_in: int
 
 @trim
 @dataclass
@@ -85,10 +86,9 @@ class ActivityPhoto:
 settings = config.getConfig()
 
 def makeRequest(method: str, url: str, user: User, **kwargs) -> requests.Response:
-    response = requests.request(method, url, **kwargs)
-    if response.status_code == 401:
+    if user.strava_token_expiry < datetime.now(timezone.utc) or (response:=requests.request(method, url, **kwargs)).status_code == 401:
         tokens = getNewTokens(user)
-        user.updateStravaTokens(tokens.access_token, tokens.refresh_token)
+        user.updateStravaTokens(tokens.access_token, tokens.refresh_token, tokens.expires_in)
         kwargs['headers']['Authorization'] = 'Bearer ' + user.strava_access_token
         response = requests.request(method, url, **kwargs)
     return response
@@ -105,6 +105,9 @@ def getNewTokens(user: User) -> TokenResponse:
     }
 
     response = requests.request("POST", url, data=payload)
+    if response.status_code != 200:
+        raise RuntimeError("Invalid refresh token. User reauthorization required.")
+    
     token_data = json.loads(response.text)
     tokens = TokenResponse(**token_data)
     

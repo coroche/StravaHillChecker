@@ -2,6 +2,7 @@ from data import userDAO
 from data.hillsDAO import Hill
 import time
 from Tests.testdata import getTestData
+from datetime import datetime, timedelta, timezone
 
 testData = getTestData()
 
@@ -51,19 +52,23 @@ def test_updateStravaTokens():
     assert user.strava_access_token == '123ABC'
     assert user.strava_refresh_token == 'ABC123'
 
-    user.updateStravaTokens('NewAccessToken', 'NewRefreshToken')
+    user.updateStravaTokens('NewAccessToken', 'NewRefreshToken', 21600)
+    newExpiry = datetime.now(timezone.utc) + timedelta(hours=6)
     
     #Assert object values have been updated
     assert user.strava_access_token == 'NewAccessToken'
     assert user.strava_refresh_token == 'NewRefreshToken'
+    assert abs(user.strava_token_expiry - newExpiry) <= timedelta(seconds=1)
     
     #Assert db values have been updated
     user = None
     user = userDAO.getUser(userId=testData.TestUserId)
     assert user.strava_access_token == 'NewAccessToken'
     assert user.strava_refresh_token == 'NewRefreshToken'
+    assert abs(user.strava_token_expiry - newExpiry) <= timedelta(seconds=1)
 
-    user.updateStravaTokens('123ABC', 'ABC123')
+
+    user.updateStravaTokens('123ABC', 'ABC123', 21600)
 
 
 def test_deleteActivity():
