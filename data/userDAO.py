@@ -16,6 +16,7 @@ class User:
     strava_access_token: str
     strava_refresh_token: str
     strava_token_expiry: datetime
+    strava_webhook_subscription_id: int = 0
 
     def getAllHills(self) -> list[Hill]:
         seenIds: set[str] = set()

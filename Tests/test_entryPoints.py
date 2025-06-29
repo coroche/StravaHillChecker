@@ -89,17 +89,25 @@ def create_sample_request(method='GET', path='/sample', data=None, params=None):
 
 def test_webhookListener(mock_processActivityFromWebhookListener: MagicMock):
     with app.test_request_context('/stravaWebhook'):       
-        request = create_sample_request(method='POST', data={"aspect_type": "create", 'object_id':12345, 'object_type':'activity', "owner_id": 54321})
+        request = create_sample_request(method='POST', data={"aspect_type": "create", 'object_id':12345, 'object_type':'activity', "owner_id": 54321, "subscription_id":56789})
         response = main_stravaWebhook.hello_http(request, testMode=True)
         assert response == ('Processing activity 12345', 200)
         assert mock_processActivityFromWebhookListener.call_count == 1
         assert mock_processActivityFromWebhookListener.call_args.args == (12345,54321)
         mock_processActivityFromWebhookListener.reset_mock()
 
+def test_webhookListenerInvalidSubscriptionId(mock_processActivityFromWebhookListener: MagicMock):
+    with app.test_request_context('/stravaWebhook'):       
+        request = create_sample_request(method='POST', data={"aspect_type": "create", 'object_id':12345, 'object_type':'activity', "owner_id": 54321, "subscription_id":59876})
+        response = main_stravaWebhook.hello_http(request, testMode=True)
+        assert response == ('Invalid athleteID and subscriptionID combination', 200)
+        assert mock_processActivityFromWebhookListener.call_count == 0
+        mock_processActivityFromWebhookListener.reset_mock()
+
 
 def test_webhookListenerPrivateActivity(mock_processActivityFromWebhookListener: MagicMock):
     with app.test_request_context('/stravaWebhook'):       
-        request = create_sample_request(method='POST', data={"aspect_type": "update","object_id": 12345,"object_type": "activity","owner_id": 54321,"updates": {"private": "true"}})
+        request = create_sample_request(method='POST', data={"aspect_type": "update","object_id": 12345,"object_type": "activity","owner_id": 54321,"updates": {"private": "true"}, "subscription_id":56789})
         response = main_stravaWebhook.hello_http(request, testMode=True)
         assert response == ('Removing activity 12345', 200)
         assert mock_processActivityFromWebhookListener.call_count == 1
@@ -109,7 +117,7 @@ def test_webhookListenerPrivateActivity(mock_processActivityFromWebhookListener:
 
 def test_webhookListenerDeletedActivity(mock_processActivityFromWebhookListener: MagicMock):
     with app.test_request_context('/stravaWebhook'):       
-        request = create_sample_request(method='POST', data={"aspect_type": "delete","object_id": 12345,"object_type": "activity","owner_id": 54321})
+        request = create_sample_request(method='POST', data={"aspect_type": "delete","object_id": 12345,"object_type": "activity","owner_id": 54321, "subscription_id":56789})
         response = main_stravaWebhook.hello_http(request, testMode=True)
         assert response == ('Removing activity 12345', 200)
         assert mock_processActivityFromWebhookListener.call_count == 1

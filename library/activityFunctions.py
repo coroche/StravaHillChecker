@@ -94,6 +94,11 @@ def processActivity(activityID: int, user: userDAO.User, ignoreTimeDiff: bool = 
 
     hillIDs = [hill.id for hill in activity.hills]
     user.recordCompletedHills(hillIDs, activityID)
+    
+    #Update spreadsheet
+    googleService = googleSheetsAPI.getService()
+    googleSheetsAPI.markAsDone(settings.google_script_ID, googleService, hillIDs, activity.activity_date_local, activityID)
+    
     timeDiff = datetime.now(timezone.utc) - activity.activity_date_utc
     
     if not activity.private and (timeDiff.days <= 7 or ignoreTimeDiff) and user.athlete_id == 43044719: #Emails for me, not for thee

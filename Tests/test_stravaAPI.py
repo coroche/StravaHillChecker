@@ -12,6 +12,9 @@ from datetime import datetime, timezone, timedelta
 data = testdata.getTestData()
 settings = config.getConfig()
 user = userDAO.getUser(userId=data.UserId)
+if user.strava_token_expiry < datetime.now(timezone.utc):
+    tokens = StravaAPI.getNewTokens(user)
+    user.updateStravaTokens(tokens.access_token, tokens.refresh_token, tokens.expires_in)
 
 def mock_response(url, status_code=200, content=None, json_data=None):
     response = Response()

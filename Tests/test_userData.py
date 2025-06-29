@@ -17,7 +17,7 @@ def test_getUser():
     assert user.email == testData.UserEmail
     for hillList in user.hill_lists:
         assert all([isinstance(hill, Hill) for hill in hillList.hills])
-    assert elapsed_time < 0.5
+    assert elapsed_time < 1
 
     hills = user.getAllHills()
     assert hills

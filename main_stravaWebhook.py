@@ -1,7 +1,7 @@
 #for use with google cloud functions
 from flask import jsonify, Request, Response
 import functions_framework
-from data import config
+from data import config, userDAO
 import concurrent.futures
 import requests
 from dataclasses import dataclass
@@ -17,6 +17,7 @@ class WebHookRequest:
     object_id: int
     object_type: str
     owner_id: str
+    subscription_id: int
     updates: dict = None
 
 
@@ -45,6 +46,10 @@ def hello_http(request: Request, testMode: bool = False) -> Response:
         athleteID = request_json.owner_id
         activityUpdatedToPrivate = request_json.aspect_type == 'update' and request_json.updates.get('private', None) == 'true' 
         activityDeleted = request_json.aspect_type == 'delete'
+
+        user = userDAO.getUser(athleteId=athleteID)
+        if not user or request_json.subscription_id != user.strava_webhook_subscription_id:
+            return "Invalid athleteID and subscriptionID combination", 200
 
         if activityUpdatedToPrivate or activityDeleted:
             future = executor.submit(callProcessActivity, activityID, athleteID, deleteActivity=True)
