@@ -22,6 +22,7 @@ class Config:
     client_secret: str
     webhook_callback_url: str
     webhook_verify_token: str
+    webhook_subscription_id: int
     google_script_ID: str
     last_parsed_activity: str
     google_functions_url: str
@@ -216,4 +217,3 @@ def renameField(collection_name: str, old_key_name: str, new_key_name: str) -> N
                 new_key_name: doc_dict[old_key_name],
                 old_key_name: firestore.DELETE_FIELD
             })
-

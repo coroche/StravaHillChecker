@@ -28,6 +28,7 @@ cmd /c gsutil cp zipped/sendReminders.zip 			gs://%GCP_Bucket%/sendReminders/
 cmd /c gsutil cp zipped/subscribe.zip 			    gs://%GCP_Bucket%/subscribe/
 cmd /c gsutil cp zipped/getMap.zip 			        gs://%GCP_Bucket%/getMap/
 cmd /c gsutil cp zipped/getChart.zip 			    gs://%GCP_Bucket%/getChart/
+cmd /c gsutil cp zipped/stravaAuth.zip 			    gs://%GCP_Bucket%/stravaAuth/
 
 echo redeploying functions...
 REM Redeploy functions
@@ -37,3 +38,4 @@ start cmd /c gcloud functions deploy sendReminders 			--gen2 --source=gs://%GCP_
 start cmd /c gcloud functions deploy subscribe 	            --gen2 --source=gs://%GCP_Bucket%/subscribe/subscribe.zip 	                        --runtime=python311 --trigger-http 																		--region=%Region% --entry-point=gcf_entry_point
 start cmd /c gcloud functions deploy getMap 	            --gen2 --source=gs://%GCP_Bucket%/getMap/getMap.zip 	                            --runtime=python311 --trigger-http 																		--region=%Region% --entry-point=gcf_entry_point
 start cmd /c gcloud functions deploy getChart 	            --gen2 --source=gs://%GCP_Bucket%/getChart/getChart.zip 	                        --runtime=python311 --trigger-http 																		--region=%Region% --entry-point=gcf_entry_point
+start cmd /c gcloud functions deploy stravaAuth 	        --gen2 --source=gs://%GCP_Bucket%/stravaAuth/stravaAuth.zip 	                    --runtime=python311 --trigger-http 																		--region=%Region% --entry-point=gcf_entry_point

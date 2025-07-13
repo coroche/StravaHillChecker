@@ -48,7 +48,7 @@ def hello_http(request: Request, testMode: bool = False) -> Response:
         activityDeleted = request_json.aspect_type == 'delete'
 
         user = userDAO.getUser(athleteId=athleteID)
-        if not user or request_json.subscription_id != user.strava_webhook_subscription_id:
+        if not user or request_json.subscription_id != settings.webhook_subscription_id:
             return "Invalid athleteID and subscriptionID combination", 200
 
         if activityUpdatedToPrivate or activityDeleted:

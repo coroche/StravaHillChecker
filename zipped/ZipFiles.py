@@ -40,3 +40,9 @@ files_to_zip = ['utils/__init__.py', 'utils/decorators.py', 'data/config.py', 'd
 archive_file_names = ['utils/__init__.py', 'utils/decorators.py', 'data/config.py', 'data/hillsDAO.py', 'data/userDAO.py', 'main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/html_templates/pieChart.html', 'data/html_templates/message.html', 'data/__init__.py', 'library/__init__.py']
 zip_file_name = 'zipped/getChart.zip'
 zip_files(files_to_zip, zip_file_name, archive_file_names)
+
+#Zip files for the stravaAuth cloud function
+files_to_zip = ['main_stravaAuth.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/__init__.py', 'data/userDAO.py', 'data/config.py', 'data/hillsDAO.py', 'data/html_templates/message.html', 'library/__init__.py', 'library/StravaAPI.py', 'library/googleSheetsAPI.py', 'utils/__init__.py', 'utils/decorators.py']
+archive_file_names = ['main.py', 'requirements.txt', 'data/firebaseServiceAccountKey.json', 'data/__init__.py', 'data/userDAO.py', 'data/config.py', 'data/hillsDAO.py', 'data/html_templates/message.html', 'library/__init__.py', 'library/StravaAPI.py', 'library/googleSheetsAPI.py', 'utils/__init__.py', 'utils/decorators.py']
+zip_file_name = 'zipped/stravaAuth.zip'
+zip_files(files_to_zip, zip_file_name, archive_file_names)

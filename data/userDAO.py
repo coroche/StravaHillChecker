@@ -1,22 +1,28 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from utils.decorators import trim
 from data import db
 from data.hillsDAO import getHillList, HillList, Hill
 from google.cloud.firestore import DocumentReference
 from google.cloud.firestore_v1.base_query import FieldFilter
 from datetime import datetime, timezone, timedelta
+from enum import Enum
+
+class StravaLinkStatus(Enum):
+    NotInitiated = 0
+    Denied = 1
+    Connected = 2
 
 @trim
 @dataclass
 class User:
     id: str
-    email: str
-    athlete_id: int
-    hill_lists: list[HillList]
-    strava_access_token: str
-    strava_refresh_token: str
-    strava_token_expiry: datetime
-    strava_webhook_subscription_id: int = 0
+    email: str = ''
+    athlete_id: int = 0
+    hill_lists: list[HillList] = field(default_factory=list)
+    strava_access_token: str = ''
+    strava_refresh_token: str = ''
+    strava_token_expiry: datetime = datetime(1900,1,1)
+    strava_link: int = StravaLinkStatus.NotInitiated.value
 
     def getAllHills(self) -> list[Hill]:
         seenIds: set[str] = set()
@@ -86,6 +92,32 @@ class User:
             'strava_token_expiry':token_expiry
         })
 
+    
+    def setStravaConnectionData(self, *, athleteId: int = None, scopes: list = None, linkStatus: StravaLinkStatus = None) -> None:
+        user_doc = db.collection('users').document(self.id)
+        update_dict = {}
+        if athleteId:
+            update_dict['athlete_id'] = athleteId
+        
+        if scopes:
+            update_dict['strava_scopes'] = scopes
+
+        if linkStatus:
+            update_dict['strava_link'] = linkStatus.value
+        
+        user_doc.update(update_dict)
+
+    
+    def removeStravaConnectionData(self) -> None:
+        user_doc = db.collection('users').document(self.id)
+        user_doc.update({
+            'athlete_id': 0,
+            'strava_scopes': [],
+            'strava_link': StravaLinkStatus.NotInitiated.value,
+            'strava_access_token': '',
+            'strava_refresh_token': '',
+            'strava_token_expiry': datetime(1900,1,1)
+        })
 
 
 def getRawUserData(*, userId: str = None, athleteId: int = None) -> tuple[str | None, DocumentReference | None, dict | None]:
@@ -140,6 +172,14 @@ def getUser(*, userId: str = None, athleteId: int = None, updateHillCounts: bool
         })
 
     return User(id=userId, hill_lists=hill_lists, **user_data)
+
+def getBasicUser(*, userId: str = None, athleteId: int = None, updateHillCounts: bool = False) -> User | None:
+    userId, _, user_data = getRawUserData(userId=userId, athleteId=athleteId)
+    if not user_data:
+        return None
+    
+    user_data['hill_lists'] = []
+    return User(id=userId, **user_data)
 
 
 def getUserHillList(userId: str, listId: str) -> HillList | None:

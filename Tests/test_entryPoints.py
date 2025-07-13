@@ -4,6 +4,7 @@ import main_processActivity
 import main_subscribe
 import main_getMap
 import main_getChart
+import main_stravaAuth
 from werkzeug.test import EnvironBuilder
 from data import config, userDAO
 from library.googleSheetsAPI import Hill
@@ -89,7 +90,7 @@ def create_sample_request(method='GET', path='/sample', data=None, params=None):
 
 def test_webhookListener(mock_processActivityFromWebhookListener: MagicMock):
     with app.test_request_context('/stravaWebhook'):       
-        request = create_sample_request(method='POST', data={"aspect_type": "create", 'object_id':12345, 'object_type':'activity', "owner_id": 54321, "subscription_id":56789})
+        request = create_sample_request(method='POST', data={"aspect_type": "create", 'object_id':12345, 'object_type':'activity', "owner_id": 54321, "subscription_id": settings.webhook_subscription_id})
         response = main_stravaWebhook.hello_http(request, testMode=True)
         assert response == ('Processing activity 12345', 200)
         assert mock_processActivityFromWebhookListener.call_count == 1
@@ -98,7 +99,7 @@ def test_webhookListener(mock_processActivityFromWebhookListener: MagicMock):
 
 def test_webhookListenerInvalidSubscriptionId(mock_processActivityFromWebhookListener: MagicMock):
     with app.test_request_context('/stravaWebhook'):       
-        request = create_sample_request(method='POST', data={"aspect_type": "create", 'object_id':12345, 'object_type':'activity', "owner_id": 54321, "subscription_id":59876})
+        request = create_sample_request(method='POST', data={"aspect_type": "create", 'object_id':12345, 'object_type':'activity', "owner_id": 54321, "subscription_id": settings.webhook_subscription_id + 1})
         response = main_stravaWebhook.hello_http(request, testMode=True)
         assert response == ('Invalid athleteID and subscriptionID combination', 200)
         assert mock_processActivityFromWebhookListener.call_count == 0
@@ -107,7 +108,7 @@ def test_webhookListenerInvalidSubscriptionId(mock_processActivityFromWebhookLis
 
 def test_webhookListenerPrivateActivity(mock_processActivityFromWebhookListener: MagicMock):
     with app.test_request_context('/stravaWebhook'):       
-        request = create_sample_request(method='POST', data={"aspect_type": "update","object_id": 12345,"object_type": "activity","owner_id": 54321,"updates": {"private": "true"}, "subscription_id":56789})
+        request = create_sample_request(method='POST', data={"aspect_type": "update","object_id": 12345,"object_type": "activity","owner_id": 54321,"updates": {"private": "true"}, "subscription_id": settings.webhook_subscription_id})
         response = main_stravaWebhook.hello_http(request, testMode=True)
         assert response == ('Removing activity 12345', 200)
         assert mock_processActivityFromWebhookListener.call_count == 1
@@ -117,7 +118,7 @@ def test_webhookListenerPrivateActivity(mock_processActivityFromWebhookListener:
 
 def test_webhookListenerDeletedActivity(mock_processActivityFromWebhookListener: MagicMock):
     with app.test_request_context('/stravaWebhook'):       
-        request = create_sample_request(method='POST', data={"aspect_type": "delete","object_id": 12345,"object_type": "activity","owner_id": 54321, "subscription_id":56789})
+        request = create_sample_request(method='POST', data={"aspect_type": "delete","object_id": 12345,"object_type": "activity","owner_id": 54321, "subscription_id": settings.webhook_subscription_id})
         response = main_stravaWebhook.hello_http(request, testMode=True)
         assert response == ('Removing activity 12345', 200)
         assert mock_processActivityFromWebhookListener.call_count == 1
@@ -228,4 +229,33 @@ def test_getChart():
         response = main_getChart.gcf_entry_point(request)
         assert response
         assert response.status_code == 200
+
+# def test_stravaAuth():
+#     with app.test_request_context('/stravaAuth'):
+#         userToken = ''
+
+#         code = 'codeHere'
+#         request = create_sample_request(params=f'code={code}&state={userToken}')
+#         response = main_stravaAuth.gcf_entry_point(request)
+#         assert response
+#         assert response.status_code == 401
+#         assert 'link denied' in str(response.data)
+
+def test_stravaAuth_UserDoesntExist():
+    with app.test_request_context('/stravaAuth'):
+        request = create_sample_request(params='code=123&state=awerbnkl')
+        response = main_stravaAuth.gcf_entry_point(request)
+        assert response
+        assert response.status_code == 401
+        assert 'link denied' in str(response.data)
+
+def test_stravaAuth_Error():
+    with app.test_request_context('/stravaAuth'):
+        request = create_sample_request(params=f'code=123&state={testData.TestUserId}&error=access_denied')
+        response = main_stravaAuth.gcf_entry_point(request)
+        assert response
+        assert response.status_code == 401
+        assert 'link denied' in str(response.data)
+
+
 

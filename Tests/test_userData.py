@@ -23,6 +23,16 @@ def test_getUser():
     assert hills
     assert len([hill.id for hill in hills]) == len({hill.id for hill in hills}) #Assert no duplicates
 
+def test_getBasicUser():
+    start_time = time.time()  
+    user = userDAO.getBasicUser(userId=testData.UserId)
+    end_time = time.time()    
+    elapsed_time = end_time - start_time 
+
+    assert user
+    assert user.email == testData.UserEmail
+    assert elapsed_time < 1
+
 def test_getUserHillList():
     hillList = userDAO.getUserHillList(testData.UserId, testData.HillListID)
     assert hillList
@@ -84,6 +94,3 @@ def test_deleteActivity():
 
     user.deleteCompletedHills([testData.HillID3])
     assert user.hill_lists[0].numberCompleted == 0
-
-      
-
