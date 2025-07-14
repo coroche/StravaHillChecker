@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 
 
 config_doc_ref = db.collection('config').document('settings')
+public_config_doc_ref = db.collection('config').document('public_settings')
 credentials_doc_ref = db.collection('config').document('credentials')
 token_doc_ref = db.collection('config').document('token')
 
@@ -18,7 +19,7 @@ token_doc_ref = db.collection('config').document('token')
 @dataclass
 class Config:
     base_url: str
-    client_id: str
+    strava_client_id: int
     client_secret: str
     webhook_callback_url: str
     webhook_verify_token: str
@@ -63,6 +64,8 @@ class Notification:
 
 def getConfig() -> Config:   
     config_data = config_doc_ref.get().to_dict()
+    public_config_data = public_config_doc_ref.get().to_dict()
+    config_data = config_data | public_config_data #Merge to a single dict
     config = Config(**config_data)
     return config
 

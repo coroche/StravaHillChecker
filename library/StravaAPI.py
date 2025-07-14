@@ -98,7 +98,7 @@ def getNewTokens(user: User) -> TokenResponse:
     url = settings.base_url + "/oauth/token"
 
     payload={
-        'client_id': settings.client_id,
+        'client_id': settings.strava_client_id,
         'client_secret': settings.client_secret,
         'grant_type': 'refresh_token',
         'refresh_token': user.strava_refresh_token
@@ -210,7 +210,7 @@ def getSubscriptions() -> List[Subscription]:
     url = settings.base_url + "/push_subscriptions"
 
     params = { 
-        'client_id': settings.client_id,
+        'client_id': settings.strava_client_id,
         'client_secret': settings.client_secret,
     }
 
@@ -222,7 +222,7 @@ def createSubscription() -> dict:
     url = settings.base_url + "/push_subscriptions"
 
     payload = { 
-        'client_id': settings.client_id,
+        'client_id': settings.strava_client_id,
         'client_secret': settings.client_secret,
         'callback_url': settings.webhook_callback_url + '/webhook',
         'verify_token': settings.webhook_verify_token
@@ -236,7 +236,7 @@ def deleteSubscription(subscriptionID):
     url = settings.base_url + "/push_subscriptions/" + str(subscriptionID)
 
     payload = {
-        'client_id': str(settings.client_id),
+        'client_id': str(settings.strava_client_id),
         'client_secret': settings.client_secret
     }
 

@@ -58,7 +58,7 @@ def gcf_entry_point(request: Request) -> Response:
     url = 'https://www.strava.com/api/v3/oauth/token'
 
     payload={
-        'client_id': settings.client_id,
+        'client_id': settings.strava_client_id,
         'client_secret': settings.client_secret,
         'code': code,
         'grant_type': 'authorization_code',
