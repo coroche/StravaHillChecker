@@ -29,7 +29,13 @@ def checkActivityForHills(user: userDAO.User, activityID: int, allHills: List[hi
     lat = streamLatLng[:,0][0::n]
     lng = streamLatLng[:,1][0::n]
 
-    hills = [hill for hill in allHills if isHillBagged(hill, np.array([lat, lng]), n)]
+    hills = []
+    for hill in allHills:
+        bagged = isHillBagged(hill, np.array([lat, lng]), n)
+        if bagged:
+            hills.append(hill)
+            hill.done = True
+
 
     if plot:
         route_cartesian = utm.from_latlon(lat,lng)
@@ -54,7 +60,7 @@ def checkActivityForHills(user: userDAO.User, activityID: int, allHills: List[hi
         ax.set_aspect('equal', adjustable='box')
         plt.show()
 
-    return hills
+    return hills, allHills
 
 
 def populateDescription(user: userDAO.User, activityID: int, hills: List[hillsDAO.Hill], custom_description: str = ""):
@@ -83,7 +89,7 @@ def processActivity(activityID: int, user: userDAO.User, ignoreTimeDiff: bool = 
     allHills = user.getAllHills()
     activity = StravaAPI.getActivityById(user, activityID)
 
-    activity.hills = checkActivityForHills(user, activityID, allHills, plot=False, n=1)
+    activity.hills, allHills = checkActivityForHills(user, activityID, allHills, plot=False, n=1)
     
 
     if not activity.hills:
