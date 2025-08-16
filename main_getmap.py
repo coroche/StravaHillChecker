@@ -2,10 +2,11 @@ from flask import Flask, Request, Response, render_template_string
 from data.config import getHTMLTemplate, Config
 from data.hillsDAO import Hill
 from data.config import getConfig
-from library.googleSheetsAPI import getPeaks, login, buildService, Hill as SheetsHill
+from library.googleSheetsAPI import Hill as SheetsHill
 import json
 from data.userDAO import getUserHillList
 from http import HTTPStatus
+from dataclasses import asdict
 
 app = Flask(__name__)
 
@@ -61,9 +62,19 @@ def gcf_entry_point(request: Request) -> Response:
     listId = request.args.get('ListId')
 
     if not userId and not listId:
-        creds = login()
-        service = buildService(creds)    
-        peaks = getPeaks(settings.google_script_ID, service)
+        # creds = login()
+        # service = buildService(creds)    
+        # peaks = getPeaks(settings.google_script_ID, service)
+        highestHundred = getUserHillList('7lGkxQywWueeFsQckAzzt9MSfNH2', 'VEpzPdBy2lO2y0fMZoSM')
+        highestHundredIds = [peak.id for peak in highestHundred.hills]
+        
+        VLs = getUserHillList('7lGkxQywWueeFsQckAzzt9MSfNH2', 'O8BdmcLh18UskheFtb4G')
+        peaks = [SheetsHill(Highest100=False, **asdict(peak)) for peak in VLs.hills]
+        
+        for peak in peaks:
+            if peak.id in highestHundredIds:
+                peak.Highest100 = True
+        
 
     else:
         if not userId:

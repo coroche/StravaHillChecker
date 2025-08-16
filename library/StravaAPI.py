@@ -246,3 +246,32 @@ def deleteSubscription(subscriptionID):
     else:
         return ''
 
+def authorise(user: User, code: str) -> tuple[bool, dict]:
+    url = 'https://www.strava.com/api/v3/oauth/token'
+
+    payload={
+        'client_id': settings.strava_client_id,
+        'client_secret': settings.client_secret,
+        'code': code,
+        'grant_type': 'authorization_code',
+    }
+
+    response = requests.request("POST", url, data=payload)
+    if response.status_code != 200:
+        return False, {}
+    
+    response_data = json.loads(response.text)
+    return True, response_data
+
+
+def deauthorise(user: User) -> bool:
+    url = 'https://www.strava.com/oauth/deauthorize'
+    params = {'access_token': user.strava_access_token}
+    
+    if user.strava_token_expiry < datetime.now(timezone.utc) or (response:=requests.post(url, params=params)).status_code == 401:
+        tokens = getNewTokens(user)
+        user.updateStravaTokens(tokens.access_token, tokens.refresh_token, tokens.expires_in)
+        params = {'access_token': user.strava_access_token}
+        response=requests.post(url, params=params)
+    
+    return response.status_code == 200, response.text

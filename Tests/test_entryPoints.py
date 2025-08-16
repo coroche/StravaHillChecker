@@ -13,6 +13,7 @@ from pytest import fixture
 from pytest_mock import MockerFixture
 from unittest.mock import MagicMock
 from Tests.testdata import getTestData
+from firebase_admin.auth import InvalidIdTokenError
 
 testData = getTestData()
 settings = config.getConfig()
@@ -78,6 +79,35 @@ def mock_deleteRecipient(mocker: MockerFixture):
 def mock_processActivityFromWebhookListener(mocker: MockerFixture):
     mocked_ProcessActivity = mocker.patch('main_stravaWebhook.callProcessActivity')
     return mocked_ProcessActivity
+
+@fixture(autouse=True)
+def mock_verifyIdToken(mocker: MockerFixture):
+    def mock_handler(token):
+        if token == "InvalidToken":
+            raise InvalidIdTokenError("Token is invalid")
+        return {
+            'uid': testData.TestUserId,
+            'email': '',
+            'name': 'Test User'
+        }
+    mocked_verifyIdToken = mocker.patch('firebase_admin.auth.verify_id_token')
+    mocked_verifyIdToken.side_effect = mock_handler
+    return mocked_verifyIdToken
+
+@fixture(autouse=True)
+def mock_stravaAuthorise(mocker: MockerFixture):
+    mocked_stravaAuthorise = mocker.patch('library.StravaAPI.authorise')
+    mocked_stravaAuthorise.return_value = True, {
+        "token_type": "Bearer",
+        "expires_at": 1568775134,
+        "expires_in": 21600,
+        "refresh_token": "ABC123",
+        "access_token": "123ABC",
+        "athlete": {
+            "id": 54321
+        }
+    }
+    return mocked_stravaAuthorise
 
 
 def create_sample_request(method='GET', path='/sample', data=None, params=None):
@@ -230,20 +260,17 @@ def test_getChart():
         assert response
         assert response.status_code == 200
 
-# def test_stravaAuth():
-#     with app.test_request_context('/stravaAuth'):
-#         userToken = ''
-
-#         code = 'codeHere'
-#         request = create_sample_request(params=f'code={code}&state={userToken}')
-#         response = main_stravaAuth.gcf_entry_point(request)
-#         assert response
-#         assert response.status_code == 401
-#         assert 'link denied' in str(response.data)
+def test_stravaAuth():
+    with app.test_request_context('/stravaAuth'):
+        request = create_sample_request(params='code=myCode&state=ValidToken&scope=read,write')
+        response = main_stravaAuth.gcf_entry_point(request)
+        assert response
+        assert response.status_code == 200
+        assert 'Strava connected successfully!' in str(response.data)
 
 def test_stravaAuth_UserDoesntExist():
     with app.test_request_context('/stravaAuth'):
-        request = create_sample_request(params='code=123&state=awerbnkl')
+        request = create_sample_request(params='code=myCode&state=InvalidToken&scope=read,write')
         response = main_stravaAuth.gcf_entry_point(request)
         assert response
         assert response.status_code == 401
@@ -251,7 +278,7 @@ def test_stravaAuth_UserDoesntExist():
 
 def test_stravaAuth_Error():
     with app.test_request_context('/stravaAuth'):
-        request = create_sample_request(params=f'code=123&state={testData.TestUserId}&error=access_denied')
+        request = create_sample_request(params='code=myCode&state=ValidToken&scope=read,write&error=access_denied')
         response = main_stravaAuth.gcf_entry_point(request)
         assert response
         assert response.status_code == 401

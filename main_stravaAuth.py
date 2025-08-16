@@ -3,10 +3,9 @@ from flask import Request, Response, render_template_string
 import functions_framework
 from firebase_admin import auth as firebase_auth
 from data import userDAO, config
-import requests
-import json
 from library.StravaAPI import TokenResponse
 from data.config import getHTMLTemplate
+from library import StravaAPI
 
 settings = config.getConfig()
 
@@ -30,11 +29,10 @@ def gcf_entry_point(request: Request) -> Response:
     deauthorise = request.args.get('deauthorise')
     if deauthorise:
         
-        url = f'https://www.strava.com/oauth/deauthorize?access_token={user.strava_access_token}'
-        response = requests.post(url)
+        success, response_message = StravaAPI.deauthorise(user)
         
-        if response.status_code != 200:
-            return Response(f'unlink denied: {response.text}', 400)
+        if not success:
+            return Response(f'unlink denied: {response_message}', 400)
         
         user.removeStravaConnectionData()
         message = render_template_string(getHTMLTemplate('message.html'), message = 'Strava disconnected successfully! You can close this tab.', script = 'window.close()')
@@ -53,25 +51,13 @@ def gcf_entry_point(request: Request) -> Response:
     scope = request.args.get('scope')
     scope_list = scope.split(',')
     
-
-
-    url = 'https://www.strava.com/api/v3/oauth/token'
-
-    payload={
-        'client_id': settings.strava_client_id,
-        'client_secret': settings.client_secret,
-        'code': code,
-        'grant_type': 'authorization_code',
-    }
-
-    response = requests.request("POST", url, data=payload)
-    if response.status_code != 200:
+    success, data = StravaAPI.authorise(user, code)
+    if not success:
         user.setStravaConnectionData(linkStatus=userDAO.StravaLinkStatus.Denied)
         return Response('link denied', 401)
     
-    response_data = json.loads(response.text)
-    tokens = TokenResponse(**response_data)
-    athleteId = response_data['athlete']['id']
+    tokens = TokenResponse(**data)
+    athleteId = data['athlete']['id']
     user.updateStravaTokens(tokens.access_token, tokens.refresh_token, tokens.expires_in)
     user.setStravaConnectionData(athleteId=athleteId, scopes=scope_list, linkStatus=userDAO.StravaLinkStatus.Connected)
     message = render_template_string(getHTMLTemplate('message.html'), message = 'Strava connected successfully! You can close this tab.', script = 'window.close()')
