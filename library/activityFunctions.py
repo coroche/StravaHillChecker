@@ -66,8 +66,8 @@ def checkActivityForHills(user: userDAO.User, activityID: int, allHills: List[hi
 def populateDescription(user: userDAO.User, activityID: int, hills: List[hillsDAO.Hill], custom_description: str = ""):
         hillNames = '\n'.join(['✅ ' + hill.name for hill in hills])
         description = '\n'.join([custom_description, 'VLs:', hillNames, settings.dashboard_url])
-        
-        StravaAPI.updateActivityDescription(user, activityID, description)
+        updates = {'description': description}
+        StravaAPI.updateActivity(user, activityID, updates)
 
 
 def updateAllDescriptions(user: userDAO.User):
@@ -184,5 +184,17 @@ def bullyRecipients():
                     else:
                         unsubscribeLink = f'{settings.webhook_callback_url}/subscribe/unsubscribe?subscriberID={recipient.id}'
                         emails.append(Email(html= html_content.replace('{UnsubscribeLink}', unsubscribeLink), address= recipient.email, subject= 'I am once again asking for you to...'))
-    sendEmails(emails)                        
+    sendEmails(emails)
+
+
+def supToKayak(activity: StravaAPI.Activity, user: StravaAPI.User):
+    """Updates SUP activities to Kayak"""
+    
+    newName = activity.name.replace('Stand Up Paddling', 'Kayaking')
+    updates = {
+        'name': newName,
+        'sport_type': 'Kayaking'
+               }
+    activity = StravaAPI.updateActivity(user, activity.id, updates)   
+    return activity               
         

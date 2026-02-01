@@ -1,6 +1,6 @@
 from flask import jsonify, Request, Response
 import functions_framework
-from library.activityFunctions import processActivity
+from library.activityFunctions import processActivity, supToKayak
 from library.StravaAPI import getActivityById, getActivities
 from dataclasses import asdict
 from data import config
@@ -38,7 +38,11 @@ def hello_http(request: Request) -> tuple[Response, HTTPStatus]:
             if not activity:
                 return jsonify({"error": f"Activity {activityID} not found"}), HTTPStatus.NOT_FOUND
 
-        _, hills = processActivity(activity.id, user)
+        if activity.sport_type == 'StandUpPaddling' and user.athlete_id == 43044719:
+            activity = supToKayak(activity, user)
+            hills = []
+        else:
+            _, hills = processActivity(activity.id, user)
 
         if activity.id > lastParsedActivity:
             config.write('last_parsed_activity', activity.id)

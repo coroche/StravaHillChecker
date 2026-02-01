@@ -109,9 +109,9 @@ def test_getActivityKudoers_WithoutKudos():
 def test_updateActivityDescription():
     activity = StravaAPI.getActivityById(user, data.ActivityWithHills)
     oldDescription = activity.description
-    activity = StravaAPI.updateActivityDescription(user, activity.id, "This is a test")
+    activity = StravaAPI.updateActivity(user, activity.id, {"description": "This is a test"})
     assert activity.description == "This is a test"
-    activity = StravaAPI.updateActivityDescription(user, activity.id, oldDescription)
+    activity = StravaAPI.updateActivity(user, activity.id, {"description": oldDescription})
     assert activity.description == oldDescription
 
 def test_getSubscriptions():

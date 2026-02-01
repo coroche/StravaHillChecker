@@ -194,9 +194,9 @@ def getActivityKudoers(user: User, activityID: int, kudos_count: int) -> List[At
     return kudos_list
 
 
-def updateActivityDescription(user: User, activityID: int, description: str) -> Activity:
+def updateActivity(user: User, activityID: int, updates: dict) -> Activity:
     url = settings.base_url + "/activities/" + str(activityID)
-    payload = {'description': description}
+    payload = updates
     headers = {'Authorization': 'Bearer ' + user.strava_access_token}
     
     response = makeRequest("PUT", url, user, headers=headers, data=payload)
