@@ -76,6 +76,8 @@ def gcf_entry_point(request: Request) -> Response:
             if peak.id in highestHundredIds:
                 peak.Highest100 = True
         
+        return serve_map(peaks, settings)
+        
 
     else:
         if not userId:
@@ -91,4 +93,4 @@ def gcf_entry_point(request: Request) -> Response:
         peaks = sorted(hillList.hills, key=lambda x: x.Height, reverse=True)
         listName = hillList.name
 
-    return serve_map(peaks, settings, listName)
+        return serve_map(peaks, settings, listName)
