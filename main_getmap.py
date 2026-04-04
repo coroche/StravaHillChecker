@@ -86,6 +86,6 @@ def gcf_entry_point(request: Request) -> Response:
         hillList = getUserHillList(userId, listId)
         if not hillList:
             return return_error('Invalid parameters', HTTPStatus.BAD_REQUEST)
-        peaks = hillList.hills
+        peaks = sorted(hillList.hills, key=lambda x: x.Height, reverse=True)
 
     return serve_map(peaks, settings)
