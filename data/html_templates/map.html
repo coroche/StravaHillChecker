@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Vandeleur-Lynams</title>
+    <title>{{list_name}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <script src="https://ajax.googleapis.com/ajax/libs/handlebars/4.7.7/handlebars.min.js"></script>
@@ -288,7 +288,7 @@
           for (let i = 0; i < locations.length; i++) {
             locations[i].index = i;
           }
-          sectionNameEl.textContent = `Vandeleur-Lynams (${locations.length})`;
+          sectionNameEl.textContent = `{{list_name}} (${locations.length})`;
           const resultItemContext = {locations: locations};
           resultsContainerEl.innerHTML = itemsTemplate(resultItemContext);
           for (let item of resultsContainerEl.children) {

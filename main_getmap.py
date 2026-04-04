@@ -37,7 +37,7 @@ def createMapLocationDict(peak: Hill | SheetsHill, icon_bucket: str) -> dict:
     return d
 
 
-def serve_map(peaks: list[Hill] | list[SheetsHill], settings: Config) -> Response:
+def serve_map(peaks: list[Hill] | list[SheetsHill], settings: Config, listName: str = 'Hills') -> Response:
     peaks_dict = [createMapLocationDict(peak, settings.map_icon_bucket) for peak in peaks]
     json_data = json.dumps(peaks_dict)
     js_list_content = f'"locations": {json_data},'
@@ -46,7 +46,8 @@ def serve_map(peaks: list[Hill] | list[SheetsHill], settings: Config) -> Respons
     html = html\
         .replace('<!-- Add location list here -->', js_list_content)\
         .replace('{{APIToken}}', settings.google_maps_api_key)\
-        .replace('{{icon_bucket}}', settings.map_icon_bucket)
+        .replace('{{icon_bucket}}', settings.map_icon_bucket)\
+        .replace('{{list_name}}', listName)
     return Response(html, HTTPStatus.OK)
 
 
@@ -86,6 +87,8 @@ def gcf_entry_point(request: Request) -> Response:
         hillList = getUserHillList(userId, listId)
         if not hillList:
             return return_error('Invalid parameters', HTTPStatus.BAD_REQUEST)
+        
         peaks = sorted(hillList.hills, key=lambda x: x.Height, reverse=True)
+        listName = hillList.name
 
-    return serve_map(peaks, settings)
+    return serve_map(peaks, settings, listName)
