@@ -1,11 +1,11 @@
 #for use with google cloud functions
 from flask import Request, Response, render_template_string
 import functions_framework
-from firebase_admin import auth as firebase_auth
-from data import userDAO, config
+from data import userDAO, config, db
 from library.StravaAPI import TokenResponse
 from data.config import getHTMLTemplate
 from library import StravaAPI
+from datetime import datetime, timedelta, timezone
 
 settings = config.getConfig()
 
@@ -13,13 +13,24 @@ settings = config.getConfig()
 @functions_framework.http
 def gcf_entry_point(request: Request) -> Response:
     
-    token = request.args.get('state')
-    if not token:
+    nonce = request.args.get('state')
+    if not nonce:
         return Response('link denied', 400)
     
     try:
-        decoded = firebase_auth.verify_id_token(token)
-        uid = decoded['uid']
+        ref = db.collection('strava_nonces').document(nonce)
+        doc = ref.get()
+
+        if not doc.exists:
+            return Response('link denied', 401)
+        
+        created_at = doc.to_dict()['created_at']
+        if created_at < datetime.now(timezone.utc) - timedelta(minutes=5):
+           ref.delete()
+           return Response('link denied', 401) 
+
+        uid = doc.to_dict()['uid']
+        ref.delete()
     except Exception:
         return Response('link denied', 401)
     user = userDAO.getBasicUser(userId=uid)

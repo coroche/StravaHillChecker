@@ -6,14 +6,14 @@ import main_getMap
 import main_getChart
 import main_stravaAuth
 from werkzeug.test import EnvironBuilder
-from data import config, userDAO
+from data import config, userDAO, db
 from library.googleSheetsAPI import Hill
 from library.StravaAPI import Activity
 from pytest import fixture
 from pytest_mock import MockerFixture
 from unittest.mock import MagicMock
 from Tests.testdata import getTestData
-from firebase_admin.auth import InvalidIdTokenError
+from datetime import datetime, timezone
 
 testData = getTestData()
 settings = config.getConfig()
@@ -80,19 +80,6 @@ def mock_processActivityFromWebhookListener(mocker: MockerFixture):
     mocked_ProcessActivity = mocker.patch('main_stravaWebhook.callProcessActivity')
     return mocked_ProcessActivity
 
-@fixture(autouse=True)
-def mock_verifyIdToken(mocker: MockerFixture):
-    def mock_handler(token):
-        if token == "InvalidToken":
-            raise InvalidIdTokenError("Token is invalid")
-        return {
-            'uid': testData.TestUserId,
-            'email': '',
-            'name': 'Test User'
-        }
-    mocked_verifyIdToken = mocker.patch('firebase_admin.auth.verify_id_token')
-    mocked_verifyIdToken.side_effect = mock_handler
-    return mocked_verifyIdToken
 
 @fixture(autouse=True)
 def mock_stravaAuthorise(mocker: MockerFixture):
@@ -262,7 +249,12 @@ def test_getChart():
 
 def test_stravaAuth():
     with app.test_request_context('/stravaAuth'):
-        request = create_sample_request(params='code=myCode&state=ValidToken&scope=read,write')
+        request = create_sample_request(params='code=myCode&state=ValidNonce&scope=read,write')
+        # Create dummy nonce
+        db.collection('strava_nonces').document('ValidNonce').set({
+            'uid': testData.TestUserId,
+            'created_at': datetime.now(timezone.utc)
+        })
         response = main_stravaAuth.gcf_entry_point(request)
         assert response
         assert response.status_code == 200
@@ -270,7 +262,7 @@ def test_stravaAuth():
 
 def test_stravaAuth_UserDoesntExist():
     with app.test_request_context('/stravaAuth'):
-        request = create_sample_request(params='code=myCode&state=InvalidToken&scope=read,write')
+        request = create_sample_request(params='code=myCode&state=InvalidNonce&scope=read,write')
         response = main_stravaAuth.gcf_entry_point(request)
         assert response
         assert response.status_code == 401
@@ -278,7 +270,12 @@ def test_stravaAuth_UserDoesntExist():
 
 def test_stravaAuth_Error():
     with app.test_request_context('/stravaAuth'):
-        request = create_sample_request(params='code=myCode&state=ValidToken&scope=read,write&error=access_denied')
+        request = create_sample_request(params='code=myCode&state=ValidNonce&scope=read,write&error=access_denied')
+        # Create dummy nonce
+        db.collection('strava_nonces').document('ValidNonce').set({
+            'uid': testData.TestUserId,
+            'created_at': datetime.now(timezone.utc)
+        })
         response = main_stravaAuth.gcf_entry_point(request)
         assert response
         assert response.status_code == 401
